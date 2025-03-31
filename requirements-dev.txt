@@ -1,5 +1,3 @@
--r galileo/requirements-dev.txt
--r requirements.txt
 mypy
 pandas-stubs
 ruff
