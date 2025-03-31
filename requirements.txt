@@ -1,1 +1,3 @@
 -r galileo/requirements.txt
+openpyxl
+pandas
