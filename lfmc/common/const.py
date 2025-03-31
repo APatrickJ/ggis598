@@ -1,6 +1,5 @@
 CONUS_STATES = [
     "Alabama",
-    "Alaska",
     "Arizona",
     "Arkansas",
     "California",
@@ -10,7 +9,6 @@ CONUS_STATES = [
     "District of Columbia",
     "Florida",
     "Georgia",
-    "Hawaii",
     "Idaho",
     "Illinois",
     "Indiana",
