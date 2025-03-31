@@ -2,6 +2,9 @@
 name = "lfmc"
 version = "0.1.0"
 
+[project.scripts]
+create-csv = "lfmc.prepare.create_csv:main"
+
 [tool.setuptools]
 packages = ["lfmc"]
 
