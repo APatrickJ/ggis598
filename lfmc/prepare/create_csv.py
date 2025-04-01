@@ -18,13 +18,10 @@ _COLUMNS = {
     "Latitude (WGS84, EPSG:4326)": "latitude",
     "Longitude (WGS84, EPSG:4326)": "longitude",
     "Sampling date (YYYYMMDD)": "sampling_date",
-    "Sampling time (24h format)": "sampling_time",
     "Protocol": "protocol",
     "LFMC value (%)": "lfmc_value",
     "Species collected": "species_collected",
     "Species functional type": "species_functional_type",
-    "Individual sample or mean value": "individual_sample_or_mean_value",
-    "Old or new leaves": "old_or_new_leaves",
 }
 
 
