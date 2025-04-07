@@ -21,10 +21,7 @@ jobs:
       run: pip install -r requirements-dev.txt
     - name: 'check formatting'
       run: python -m ruff format --check
-      working-directory: lfmc
     - name: 'lint'
       run: python -m ruff check
-      working-directory: lfmc
     - name: 'type check'
-      run: python -m mypy .
-      working-directory: lfmc
+      run: python -m mypy lfmc/
