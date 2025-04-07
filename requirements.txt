@@ -1,2 +1,3 @@
+-r lib/galileo/requirements.txt
 openpyxl
 pandas
