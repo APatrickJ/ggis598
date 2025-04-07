@@ -1,3 +1,5 @@
+from pathlib import Path
+
 CONUS_STATES = [
     "Alabama",
     "Arizona",
@@ -49,3 +51,5 @@ CONUS_STATES = [
     "Wisconsin",
     "Wyoming",
 ]
+
+LABELS_PATH = Path("data/generated/lfmc_data_conus.csv")

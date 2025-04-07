@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from lfmc.common.const import CONUS_STATES
+from lfmc.common.const import CONUS_STATES, LABELS_PATH
 
 _SHEET_NAME = "LFMC data"
 
@@ -65,7 +65,7 @@ def main():
     parser.add_argument(
         "--output_csv_path",
         type=Path,
-        default=Path("data/generated/lfmc_data_conus.csv"),
+        default=Path(LABELS_PATH),
     )
     parser.add_argument(
         "--start_date",
