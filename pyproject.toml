@@ -8,6 +8,10 @@ create-csv = "lfmc.prepare.create_csv:main"
 [tool.setuptools]
 packages = ["lfmc"]
 
+[tool.mypy]
+exclude = ["^galileo/.*"]
+
 [tool.ruff]
-lint.extend-select = ["I", "TID252"]
+exclude = ["galileo/"]
 line-length = 99
+lint.extend-select = ["I", "TID252"]
