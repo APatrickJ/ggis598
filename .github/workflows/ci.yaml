@@ -24,4 +24,4 @@ jobs:
     - name: 'lint'
       run: python -m ruff check
     - name: 'type check'
-      run: python -m mypy lfmc/
+      run: python -m mypy .
