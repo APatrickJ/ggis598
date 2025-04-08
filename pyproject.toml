@@ -9,9 +9,6 @@ create-csv = "lfmc.prepare.create_csv:main"
 [tool.setuptools]
 packages = ["lfmc"]
 
-[tool.mypy]
-exclude = ["^galileo/.*"]
-
 [tool.ruff]
 exclude = ["galileo/"]
 line-length = 99
