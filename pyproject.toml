@@ -10,6 +10,6 @@ create-csv = "lfmc.prepare.create_csv:main"
 packages = ["lfmc"]
 
 [tool.ruff]
-exclude = ["galileo/"]
+exclude = ["galileo/", "lib/"]
 line-length = 99
 lint.extend-select = ["I", "TID252"]
