@@ -1,3 +1,4 @@
 -r lib/galileo/requirements.txt
+numpy
 openpyxl
 pandas
