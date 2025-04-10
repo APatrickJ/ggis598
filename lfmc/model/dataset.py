@@ -15,7 +15,7 @@ from galileo.data.dataset import (
 )
 from galileo.masking import MaskedOutput
 from galileo.utils import masked_output_np_to_tensor
-from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE
+from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE, FileSuffix
 from lfmc.model import bands
 from lfmc.model.labels import read_labels
 from lfmc.model.padding import DEFAULT_PADDING, pad_dates
@@ -67,11 +67,11 @@ class LFMCDataset(Dataset):
 
         data = read_labels(LABELS_PATH)
 
-        suffix = "h5" if h5pys_only else "tif"
+        suffix = FileSuffix.H5 if h5pys_only else FileSuffix.TIF
         for _, row in tqdm(data.iterrows(), total=len(data)):
             filepath = data_folder / f"{row['sorting_id']}.{suffix}"
             if filepath.exists():
-                if filepath.suffix == ".h5":
+                if filepath.suffix == f".{FileSuffix.H5}":
                     self.h5pys.append(filepath)
                 else:
                     self.tifs.append(filepath)
