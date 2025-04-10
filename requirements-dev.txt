@@ -3,3 +3,4 @@
 mypy
 pandas-stubs
 ruff
+types-tqdm
