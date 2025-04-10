@@ -53,3 +53,5 @@ CONUS_STATES = [
 ]
 
 LABELS_PATH = Path("data/generated/lfmc_data_conus.csv")
+
+MAX_LFMC_VALUE = 300
