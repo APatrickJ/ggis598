@@ -11,5 +11,5 @@ packages = ["lfmc"]
 
 [tool.ruff]
 exclude = ["galileo/", "lib/"]
-line-length = 99
+line-length = 120
 lint.extend-select = ["I", "TID252"]
