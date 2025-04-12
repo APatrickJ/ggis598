@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
@@ -18,7 +19,9 @@ from galileo.utils import masked_output_np_to_tensor
 from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE, FileSuffix
 from lfmc.model import bands
 from lfmc.model.labels import read_labels
+from lfmc.model.mode import Mode
 from lfmc.model.padding import DEFAULT_PADDING, pad_dates
+from lfmc.model.splits import get_mode_from_hex, num_splits
 
 
 @dataclass
@@ -42,6 +45,8 @@ class LFMCDataset(Dataset):
         static_bands: list[str] = list(bands.STATIC_BANDS),
         time_bands: list[str] = list(bands.TIME_BANDS),
         space_bands: list[str] = list(bands.SPACE_BANDS),
+        mode: Mode = Mode.TRAIN,
+        split_id: int | None = None,
     ):
         super().__init__(
             data_folder,
@@ -61,9 +66,11 @@ class LFMCDataset(Dataset):
             space_bands,
         )
 
+        self.mode = mode
+        self.split_id = split_id
         self.tifs: list[Path] = []
         self.h5pys: list[Path] = []
-        self.filepath_to_sample_data: dict[str, SampleData] = {}
+        self.stem_to_sample: dict[str, SampleData] = {}
 
         data = read_labels(LABELS_PATH)
 
@@ -76,15 +83,40 @@ class LFMCDataset(Dataset):
                 else:
                     self.tifs.append(filepath)
                 start_date, _ = pad_dates(row["date"], DEFAULT_PADDING)
-                self.filepath_to_sample_data[filepath.stem] = SampleData(
+                self.stem_to_sample[filepath.stem] = SampleData(
                     sorting_id=row["sorting_id"],
                     lfmc_value=row["lfmc"],
                     start_month=start_date.month,
                 )
 
+    def _create_subset(self, mode: Mode, stems: frozenset[str]) -> "LFMCDataset":
+        new_dataset = deepcopy(self)
+        new_dataset.mode = mode
+        new_dataset.tifs = [tif for tif in self.tifs if tif.stem in stems]
+        new_dataset.h5pys = [h5py for h5py in self.h5pys if h5py.stem in stems]
+        new_dataset.stem_to_sample = {stem: self.stem_to_sample[stem] for stem in stems}
+        return new_dataset
+
+    def split(self) -> tuple["LFMCDataset", "LFMCDataset"]:
+        next_split = 0 if self.split_id is None else (self.split_id + 1) % num_splits()
+
+        train_stems = set()
+        validation_stems = set()
+        for stem, sample_data in self.stem_to_sample.items():
+            mode = get_mode_from_hex(sample_data.sorting_id, next_split)
+            if mode == Mode.TRAIN:
+                train_stems.add(stem)
+            else:
+                validation_stems.add(stem)
+
+        return (
+            self._create_subset(Mode.TRAIN, frozenset(train_stems)),
+            self._create_subset(Mode.VALIDATION, frozenset(validation_stems)),
+        )
+
     @override
     def month_array_from_file(self, tif_path: Path, num_timesteps: int) -> np.ndarray:
-        sample_data = self.filepath_to_sample_data[tif_path.stem]
+        sample_data = self.stem_to_sample[tif_path.stem]
         start_month = sample_data.start_month
         return np.fmod(np.arange(start_month - 1, start_month - 1 + num_timesteps), 12)
 
@@ -129,7 +161,7 @@ class LFMCDataset(Dataset):
             (s_t_x, sp_x, t_x, st_x, months) = self.load_tif(idx).normalize(self.normalizer)
 
         filepath = self.h5pys[idx]
-        sample_data = self.filepath_to_sample_data[filepath.stem]
+        sample_data = self.stem_to_sample[filepath.stem]
         lfmc_value = min(sample_data.lfmc_value, MAX_LFMC_VALUE)
         masks = self.masks
         normalized_lfmc_value = lfmc_value / MAX_LFMC_VALUE
