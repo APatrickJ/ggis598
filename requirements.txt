@@ -1,5 +1,6 @@
 -r lib/galileo/requirements.txt
 frozendict
+frozenlist
 numpy
 openpyxl
 pandas
