@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import override
 
 import numpy as np
+from frozendict import frozendict
+from frozenlist import FrozenList
 from tqdm import tqdm
 
 from galileo.data.dataset import (
@@ -41,10 +43,10 @@ class LFMCDataset(Dataset):
         h5pys_only: bool = False,
         output_hw: int = 32,
         output_timesteps: int = 12,
-        space_time_bands: list[str] = list(bands.SPACE_TIME_BANDS),
-        static_bands: list[str] = list(bands.STATIC_BANDS),
-        time_bands: list[str] = list(bands.TIME_BANDS),
-        space_bands: list[str] = list(bands.SPACE_BANDS),
+        space_time_bands: FrozenList[str] = FrozenList(bands.SPACE_TIME_BANDS),
+        static_bands: FrozenList[str] = FrozenList(bands.STATIC_BANDS),
+        time_bands: FrozenList[str] = FrozenList(bands.TIME_BANDS),
+        space_bands: FrozenList[str] = FrozenList(bands.SPACE_BANDS),
         mode: Mode = Mode.TRAIN,
         split_id: int | None = None,
     ):
@@ -68,9 +70,10 @@ class LFMCDataset(Dataset):
 
         self.mode = mode
         self.split_id = split_id
+
         self.tifs: list[Path] = []
         self.h5pys: list[Path] = []
-        self.stem_to_sample: dict[str, SampleData] = {}
+        stem_to_sample: dict[str, SampleData] = {}
 
         data = read_labels(LABELS_PATH)
 
@@ -83,18 +86,20 @@ class LFMCDataset(Dataset):
                 else:
                     self.tifs.append(filepath)
                 start_date, _ = pad_dates(row["date"], DEFAULT_PADDING)
-                self.stem_to_sample[filepath.stem] = SampleData(
+                stem_to_sample[filepath.stem] = SampleData(
                     sorting_id=row["sorting_id"],
                     lfmc_value=row["lfmc"],
                     start_month=start_date.month,
                 )
+
+        self.stem_to_sample: frozendict[str, SampleData] = frozendict(stem_to_sample)
 
     def _create_subset(self, mode: Mode, stems: frozenset[str]) -> "LFMCDataset":
         new_dataset = deepcopy(self)
         new_dataset.mode = mode
         new_dataset.tifs = [tif for tif in self.tifs if tif.stem in stems]
         new_dataset.h5pys = [h5py for h5py in self.h5pys if h5py.stem in stems]
-        new_dataset.stem_to_sample = {stem: self.stem_to_sample[stem] for stem in stems}
+        new_dataset.stem_to_sample = frozendict({stem: self.stem_to_sample[stem] for stem in stems})
         return new_dataset
 
     def split(self) -> tuple["LFMCDataset", "LFMCDataset"]:
@@ -188,10 +193,10 @@ class LFMCDataset(Dataset):
         self,
         output_hw: int,
         output_timesteps: int,
-        space_time_bands: list[str],
-        static_bands: list[str],
-        time_bands: list[str],
-        space_bands: list[str],
+        space_time_bands: FrozenList[str],
+        static_bands: FrozenList[str],
+        time_bands: FrozenList[str],
+        space_bands: FrozenList[str],
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         space_time_mask = np.ones(
             [
