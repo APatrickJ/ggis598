@@ -167,10 +167,8 @@ class LFMCDataset(Dataset):
 
         filepath = self.h5pys[idx]
         sample_data = self.stem_to_sample[filepath.stem]
-        lfmc_value = min(sample_data.lfmc_value, MAX_LFMC_VALUE)
-        masks = self.masks
-        normalized_lfmc_value = lfmc_value / MAX_LFMC_VALUE
-        return masked_output_np_to_tensor(s_t_x, sp_x, t_x, st_x, *masks, months), normalized_lfmc_value
+        normalized_lfmc_value = min(sample_data.lfmc_value, MAX_LFMC_VALUE) / MAX_LFMC_VALUE
+        return masked_output_np_to_tensor(s_t_x, sp_x, t_x, st_x, *self.masks, months), normalized_lfmc_value
 
     @override
     @staticmethod
