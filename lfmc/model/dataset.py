@@ -94,9 +94,10 @@ class LFMCDataset(Dataset):
 
         self.stem_to_sample: frozendict[str, SampleData] = frozendict(stem_to_sample)
 
-    def _create_subset(self, mode: Mode, stems: frozenset[str]) -> "LFMCDataset":
+    def _create_subset(self, mode: Mode, split_id: int, stems: frozenset[str]) -> "LFMCDataset":
         new_dataset = deepcopy(self)
         new_dataset.mode = mode
+        new_dataset.split_id = split_id
         new_dataset.tifs = [tif for tif in self.tifs if tif.stem in stems]
         new_dataset.h5pys = [h5py for h5py in self.h5pys if h5py.stem in stems]
         new_dataset.stem_to_sample = frozendict({stem: self.stem_to_sample[stem] for stem in stems})
@@ -115,8 +116,8 @@ class LFMCDataset(Dataset):
                 validation_stems.add(stem)
 
         return (
-            self._create_subset(Mode.TRAIN, frozenset(train_stems)),
-            self._create_subset(Mode.VALIDATION, frozenset(validation_stems)),
+            self._create_subset(Mode.TRAIN, next_split, frozenset(train_stems)),
+            self._create_subset(Mode.VALIDATION, next_split, frozenset(validation_stems)),
         )
 
     @override
