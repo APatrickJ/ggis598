@@ -162,10 +162,11 @@ class LFMCDataset(Dataset):
     def __getitem__(self, idx: int) -> tuple[MaskedOutput, float]:
         if self.h5pys_only:
             (s_t_x, sp_x, t_x, st_x, months) = self.read_and_slice_h5py_file(self.h5pys[idx]).normalize(self.normalizer)
+            filepath = self.h5pys[idx]
         else:
             (s_t_x, sp_x, t_x, st_x, months) = self.load_tif(idx).normalize(self.normalizer)
+            filepath = self.tifs[idx]
 
-        filepath = self.h5pys[idx]
         sample_data = self.stem_to_sample[filepath.stem]
         normalized_lfmc_value = min(sample_data.lfmc_value, MAX_LFMC_VALUE) / MAX_LFMC_VALUE
         return masked_output_np_to_tensor(s_t_x, sp_x, t_x, st_x, *self.masks, months), normalized_lfmc_value
