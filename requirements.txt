@@ -4,4 +4,6 @@ frozenlist
 numpy
 openpyxl
 pandas
+torch
+torchvision
 tqdm
