@@ -53,7 +53,7 @@ CONUS_STATES = [
     "Wyoming",
 ]
 
-LABELS_PATH = Path("data/generated/lfmc_data_conus.csv")
+LABELS_PATH = Path("data/labels/lfmc_data_conus.csv")
 
 MAX_LFMC_VALUE = 327  # 99th percentile of the LFMC values
 
