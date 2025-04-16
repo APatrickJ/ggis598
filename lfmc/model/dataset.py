@@ -160,6 +160,9 @@ class LFMCDataset(Dataset):
             months[timesteps_to_sample],
         )
 
+    def __len__(self) -> int:
+        return len(self.tifs) if not self.h5pys_only else len(self.h5pys)
+
     def __getitem__(self, idx: int) -> tuple[MaskedOutput, float]:
         if self.h5pys_only:
             (s_t_x, sp_x, t_x, st_x, months) = self.read_and_slice_h5py_file(self.h5pys[idx]).normalize(self.normalizer)
