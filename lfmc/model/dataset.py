@@ -1,12 +1,12 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import override
 
 import numpy as np
 from frozendict import frozendict
 from frozenlist import FrozenList
 from tqdm import tqdm
+from typing_extensions import override
 
 from galileo.data.dataset import (
     SPACE_BAND_GROUPS_IDX,
