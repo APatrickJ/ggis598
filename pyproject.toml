@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 [project.scripts]
 create-csv = "lfmc.prepare.create_csv:main"
 analyze-csv = "lfmc.prepare.analyze_csv:main"
+create-h5pys = "lfmc.prepare.create_h5pys:main"
 finetune-model = "lfmc.train.finetune_model:main"
 
 [tool.setuptools]
