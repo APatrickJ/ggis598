@@ -16,5 +16,5 @@ pip install -e .
 From an Apple Silicon Mac:
 
 ```shell
-docker buildx build --platform=linux/amd64 -t lfmc-train-$(date "+%Y%m%d-%H%M%S") .
+docker buildx build --platform=linux/amd64 -t lfmc .
 ```
