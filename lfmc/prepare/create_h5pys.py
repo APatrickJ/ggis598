@@ -26,14 +26,17 @@ def main():
     parser.add_argument(
         "--config_dir",
         type=Path,
+        required=True,
     )
     parser.add_argument(
         "--data_folder",
         type=Path,
+        required=True,
     )
     parser.add_argument(
         "--h5py_folder",
         type=Path,
+        required=True,
     )
     args = parser.parse_args()
 
