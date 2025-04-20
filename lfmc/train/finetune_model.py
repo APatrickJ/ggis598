@@ -29,27 +29,33 @@ def main():
         "--pretrained_model_folder",
         type=Path,
         default=Path("lib/galileo/data/models/nano"),
+        required=True,
     )
     parser.add_argument(
         "--output_folder",
         type=Path,
         default=Path("data/models"),
+        required=True,
     )
     parser.add_argument(
         "--config_dir",
         type=Path,
+        required=True,
     )
     parser.add_argument(
         "--data_folder",
         type=Path,
+        required=True,
     )
     parser.add_argument(
         "--h5py_folder",
         type=Path,
+        required=True,
     )
     parser.add_argument(
         "--h5pys_only",
         action=argparse.BooleanOptionalAction,
+        default=False,
     )
     args = parser.parse_args()
 
