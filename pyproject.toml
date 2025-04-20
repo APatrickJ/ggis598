@@ -10,7 +10,7 @@ create-h5pys = "lfmc.prepare.create_h5pys:main"
 finetune-model = "lfmc.train.finetune_model:main"
 
 [tool.setuptools]
-packages = ["lfmc"]
+packages = ["galileo", "lfmc"]
 
 [tool.ruff]
 exclude = ["galileo/", "lib/"]
