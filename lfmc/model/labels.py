@@ -26,7 +26,7 @@ def read_labels(path: Path) -> pd.DataFrame:
         {
             "site_name": "first",
             "sorting_id": "first",
-            "lfmc": "mean",
+            "lfmc_value": "mean",
             "state_region": "first",
             "country": "first",
         }
