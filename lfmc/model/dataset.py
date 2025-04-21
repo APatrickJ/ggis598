@@ -18,7 +18,7 @@ from galileo.data.dataset import (
 )
 from galileo.masking import MaskedOutput
 from galileo.utils import masked_output_np_to_tensor
-from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE, FileSuffix
+from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE, Column, FileSuffix
 from lfmc.model import bands
 from lfmc.model.labels import read_labels
 from lfmc.model.mode import Mode
@@ -79,16 +79,16 @@ class LFMCDataset(Dataset):
 
         suffix = FileSuffix.H5 if h5pys_only else FileSuffix.TIF
         for _, row in tqdm(data.iterrows(), total=len(data)):
-            filepath = data_folder / f"{row['sorting_id']}.{suffix}"
+            filepath = data_folder / f"{row[Column.SORTING_ID]}.{suffix}"
             if filepath.exists():
                 if filepath.suffix == f".{FileSuffix.H5}":
                     self.h5pys.append(filepath)
                 else:
                     self.tifs.append(filepath)
-                start_date, _ = pad_dates(row["sampling_date"], DEFAULT_PADDING)
+                start_date, _ = pad_dates(row[Column.SAMPLING_DATE], DEFAULT_PADDING)
                 stem_to_sample[filepath.stem] = SampleData(
-                    sorting_id=row["sorting_id"],
-                    lfmc_value=row["lfmc_value"],
+                    sorting_id=row[Column.SORTING_ID],
+                    lfmc_value=row[Column.LFMC_VALUE],
                     start_month=start_date.month,
                 )
 

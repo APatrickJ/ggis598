@@ -5,23 +5,23 @@ from pathlib import Path
 
 import pandas as pd
 
-from lfmc.common.const import CONUS_STATES, LABELS_PATH
+from lfmc.common.const import CONUS_STATES, LABELS_PATH, Column
 
 _SHEET_NAME = "LFMC data"
 
 _COLUMNS = {
-    "Sorting ID": "sorting_id",
-    "Contact": "contact",
-    "Site name": "site_name",
-    "Country": "country",
-    "State/Region": "state_region",
-    "Latitude (WGS84, EPSG:4326)": "latitude",
-    "Longitude (WGS84, EPSG:4326)": "longitude",
-    "Sampling date (YYYYMMDD)": "sampling_date",
-    "Protocol": "protocol",
-    "LFMC value (%)": "lfmc_value",
-    "Species collected": "species_collected",
-    "Species functional type": "species_functional_type",
+    "Sorting ID": Column.SORTING_ID,
+    "Contact": Column.CONTACT,
+    "Site name": Column.SITE_NAME,
+    "Country": Column.COUNTRY,
+    "State/Region": Column.STATE_REGION,
+    "Latitude (WGS84, EPSG:4326)": Column.LATITUDE,
+    "Longitude (WGS84, EPSG:4326)": Column.LONGITUDE,
+    "Sampling date (YYYYMMDD)": Column.SAMPLING_DATE,
+    "Protocol": Column.PROTOCOL,
+    "LFMC value (%)": Column.LFMC_VALUE,
+    "Species collected": Column.SPECIES_COLLECTED,
+    "Species functional type": Column.SPECIES_FUNCTIONAL_TYPE,
 }
 
 
