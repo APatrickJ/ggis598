@@ -58,6 +58,21 @@ LABELS_PATH = Path("data/labels/lfmc_data_conus.csv")
 MAX_LFMC_VALUE = 327  # 99th percentile of the LFMC values
 
 
+class Column(StrEnum):
+    SORTING_ID = "sorting_id"
+    CONTACT = "contact"
+    SITE_NAME = "site_name"
+    COUNTRY = "country"
+    STATE_REGION = "state_region"
+    LATITUDE = "latitude"
+    LONGITUDE = "longitude"
+    SAMPLING_DATE = "sampling_date"
+    PROTOCOL = "protocol"
+    LFMC_VALUE = "lfmc_value"
+    SPECIES_COLLECTED = "species_collected"
+    SPECIES_FUNCTIONAL_TYPE = "species_functional_type"
+
+
 class FileSuffix(StrEnum):
     TIF = "tif"
     H5 = "h5"

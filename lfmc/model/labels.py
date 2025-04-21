@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from lfmc.common.const import Column
+
 
 def read_labels(path: Path) -> pd.DataFrame:
     """Reads the LFMC labels CSV file.
@@ -17,19 +19,19 @@ def read_labels(path: Path) -> pd.DataFrame:
     data = pd.read_csv(path)
     grouped = data.groupby(
         [
-            "latitude",
-            "longitude",
-            "sampling_date",
+            Column.LATITUDE,
+            Column.LONGITUDE,
+            Column.SAMPLING_DATE,
         ],
         as_index=False,
     ).agg(
         {
-            "site_name": "first",
-            "sorting_id": "first",
-            "lfmc_value": "mean",
-            "state_region": "first",
-            "country": "first",
+            Column.SITE_NAME: "first",
+            Column.SORTING_ID: "first",
+            Column.LFMC_VALUE: "mean",
+            Column.STATE_REGION: "first",
+            Column.COUNTRY: "first",
         }
     )
-    grouped["sampling_date"] = pd.to_datetime(grouped["sampling_date"]).dt.date
+    grouped[Column.SAMPLING_DATE] = pd.to_datetime(grouped[Column.SAMPLING_DATE]).dt.date
     return grouped
