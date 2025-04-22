@@ -1,1 +1,11 @@
 data/external/Globe-LFMC-2.0[[:space:]]final.xlsx filter=lfs diff=lfs merge=lfs -text
+tests/model/data/107584.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/132586.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/146009.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/151934.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/224299.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/124659.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/141426.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/141954.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/168688.tif filter=lfs diff=lfs merge=lfs -text
+tests/model/data/271394.tif filter=lfs diff=lfs merge=lfs -text
