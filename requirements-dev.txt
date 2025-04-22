@@ -3,5 +3,6 @@
 beaker-py
 mypy
 pandas-stubs
+pytest
 ruff
 types-tqdm
