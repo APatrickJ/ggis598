@@ -49,7 +49,7 @@ class LFMCEval:
         output_folder: Path,
         hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
         finetuning_config: FinetuningConfig = DEFAULT_FINETUNING_CONFIG,
-    ):
+    ) -> FineTuningModel:
         loss_fn = nn.MSELoss()
 
         dataset = LFMCDataset(
