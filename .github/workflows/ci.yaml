@@ -25,3 +25,5 @@ jobs:
       run: python -m ruff check
     - name: 'type check'
       run: python -m mypy .
+    - name: 'test'
+      run: python -m pytest tests
