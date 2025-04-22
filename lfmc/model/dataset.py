@@ -78,8 +78,9 @@ class LFMCDataset(Dataset):
         data = read_labels(LABELS_PATH)
 
         suffix = FileSuffix.H5 if h5pys_only else FileSuffix.TIF
+        folder = h5py_folder if h5pys_only else data_folder
         for _, row in tqdm(data.iterrows(), total=len(data)):
-            filepath = data_folder / f"{row[Column.SORTING_ID]}.{suffix}"
+            filepath = folder / f"{row[Column.SORTING_ID]}.{suffix}"
             if filepath.exists():
                 if filepath.suffix == f".{FileSuffix.H5}":
                     self.h5pys.append(filepath)
