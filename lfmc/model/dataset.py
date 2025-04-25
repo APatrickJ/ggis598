@@ -213,7 +213,7 @@ class LFMCDataset(Dataset):
         space_time_include = [i for i, key in enumerate(SPACE_TIME_BANDS_GROUPS_IDX) if key in space_time_bands]
         space_time_mask[:, :, :, space_time_include] = 0
 
-        space_mask = np.ones([output_hw, output_hw, len(space_bands)])
+        space_mask = np.ones([output_hw, output_hw, len(SPACE_BAND_GROUPS_IDX)])
         space_include = [i for i, key in enumerate(SPACE_BAND_GROUPS_IDX) if key in space_bands]
         space_mask[:, :, space_include] = 0
 
