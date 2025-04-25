@@ -5,7 +5,10 @@ from pathlib import Path
 from galileo.data.config import NORMALIZATION_DICT_FILENAME
 from galileo.data.dataset import Dataset, Normalizer
 from galileo.galileo import Encoder
+from galileo.utils import device
 from lfmc.model.eval import LFMCEval
+
+logger = logging.getLogger(__name__)
 
 
 def load_normalizer(config_dir: Path) -> Normalizer:
@@ -58,6 +61,8 @@ def main():
         default=False,
     )
     args = parser.parse_args()
+
+    logger.info("Device: %s", device)
 
     lfmc_eval = LFMCEval(
         normalizer=load_normalizer(args.config_dir),
