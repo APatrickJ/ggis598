@@ -27,6 +27,7 @@ class LFMCEval:
         output_hw: int = 32,
         output_timesteps: int = 12,
         patch_size: int = 16,
+        split_id: int = 0,
     ):
         self.normalizer = normalizer
         self.data_folder = data_folder
@@ -35,6 +36,7 @@ class LFMCEval:
         self.output_hw = output_hw
         self.output_timesteps = output_timesteps
         self.patch_size = patch_size
+        self.split_id = split_id
 
     @classmethod
     def _new_finetuning_model(cls, model: Encoder) -> FineTuningModel:
@@ -59,6 +61,7 @@ class LFMCEval:
             h5pys_only=self.h5pys_only,
             output_hw=self.output_hw,
             output_timesteps=self.output_timesteps,
+            split_id=self.split_id,
         )
         train_dataset, validation_dataset = dataset.split()
 
