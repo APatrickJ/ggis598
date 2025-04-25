@@ -40,9 +40,10 @@ class LFMCEval:
 
     @classmethod
     def _new_finetuning_model(cls, model: Encoder) -> FineTuningModel:
-        head = nn.Linear(model.embedding_size, 1)
-        finetuning_model = FineTuningModel(model, head)
-        finetuning_model.to(device)
+        num_classes = 1
+        head = nn.Linear(model.embedding_size, num_classes)
+        finetuning_model = FineTuningModel(model, head).to(device)
+        finetuning_model.train()
         return finetuning_model
 
     def finetune(
