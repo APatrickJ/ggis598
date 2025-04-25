@@ -44,9 +44,9 @@ class LFMCDataset(Dataset):
         output_hw: int = 32,
         output_timesteps: int = 12,
         space_time_bands: FrozenList[str] = FrozenList(bands.SPACE_TIME_BANDS),
-        static_bands: FrozenList[str] = FrozenList(bands.STATIC_BANDS),
-        time_bands: FrozenList[str] = FrozenList(bands.TIME_BANDS),
         space_bands: FrozenList[str] = FrozenList(bands.SPACE_BANDS),
+        time_bands: FrozenList[str] = FrozenList(bands.TIME_BANDS),
+        static_bands: FrozenList[str] = FrozenList(bands.STATIC_BANDS),
         mode: Mode = Mode.TRAIN,
         split_id: int | None = None,
     ):
@@ -63,9 +63,9 @@ class LFMCDataset(Dataset):
             output_hw,
             output_timesteps,
             space_time_bands,
-            static_bands,
-            time_bands,
             space_bands,
+            time_bands,
+            static_bands,
         )
 
         self.mode = mode
@@ -198,9 +198,9 @@ class LFMCDataset(Dataset):
         output_hw: int,
         output_timesteps: int,
         space_time_bands: FrozenList[str],
-        static_bands: FrozenList[str],
-        time_bands: FrozenList[str],
         space_bands: FrozenList[str],
+        time_bands: FrozenList[str],
+        static_bands: FrozenList[str],
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         space_time_mask = np.ones(
             [
