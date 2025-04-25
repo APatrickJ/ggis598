@@ -101,7 +101,6 @@ class LFMCDataset(Dataset):
         new_dataset.split_id = split_id
         new_dataset.tifs = [tif for tif in self.tifs if tif.stem in stems]
         new_dataset.h5pys = [h5py for h5py in self.h5pys if h5py.stem in stems]
-        new_dataset.stem_to_sample = frozendict({stem: self.stem_to_sample[stem] for stem in stems})
         return new_dataset
 
     def split(self) -> tuple["LFMCDataset", "LFMCDataset"]:
