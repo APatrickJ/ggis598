@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 
+from galileo.config import BASE_GSD
 from galileo.galileo import Encoder
 
 
@@ -48,7 +49,7 @@ class FineTuningModel(nn.Module):
         st_m: torch.Tensor,
         months: torch.Tensor,
         patch_size: int | None = None,
-        input_resolution_m: int | None = None,
+        input_resolution_m: int | None = BASE_GSD,
     ) -> torch.Tensor:
         s_t_x, sp_x, t_x, st_x, s_t_m, sp_m, t_m, st_m, _ = self.encoder(
             s_t_x,
