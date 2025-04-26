@@ -80,6 +80,9 @@ class FileSuffix(StrEnum):
     H5 = "h5"
 
 
+WGS84_EPSG = 4326
+
+
 WORLD_COVER_CLASS_MAP = frozendict(
     {
         10: "Tree cover",
