@@ -31,6 +31,8 @@ def read_labels(path: Path) -> pd.DataFrame:
             Column.LFMC_VALUE: "mean",
             Column.STATE_REGION: "first",
             Column.COUNTRY: "first",
+            Column.WORLDCOVER: "first",
+            Column.ELEVATION: "first",
         }
     )
     grouped[Column.SAMPLING_DATE] = pd.to_datetime(grouped[Column.SAMPLING_DATE]).dt.date
