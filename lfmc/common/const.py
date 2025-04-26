@@ -73,6 +73,8 @@ class Column(StrEnum):
     LFMC_VALUE = "lfmc_value"
     SPECIES_COLLECTED = "species_collected"
     SPECIES_FUNCTIONAL_TYPE = "species_functional_type"
+    WORLDCOVER = "worldcover"
+    ELEVATION = "elevation"
 
 
 class FileSuffix(StrEnum):
