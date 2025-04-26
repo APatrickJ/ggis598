@@ -1,6 +1,8 @@
 from enum import StrEnum
 from pathlib import Path
 
+from frozendict import frozendict
+
 CONUS_STATES = [
     "Alabama",
     "Arizona",
@@ -76,3 +78,20 @@ class Column(StrEnum):
 class FileSuffix(StrEnum):
     TIF = "tif"
     H5 = "h5"
+
+
+WORLD_COVER_CLASS_MAP = frozendict(
+    {
+        10: "Tree cover",
+        20: "Shrubland",
+        30: "Grassland",
+        40: "Cropland",
+        50: "Built-up",
+        60: "Bare / sparse vegetation",
+        70: "Snow and ice",
+        80: "Permanent water bodies",
+        90: "Herbaceous wetland",
+        95: "Mangroves",
+        100: "Moss and lichen",
+    }
+)
