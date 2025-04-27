@@ -19,8 +19,8 @@ from galileo.data.dataset import (
 from galileo.masking import MaskedOutput
 from galileo.utils import masked_output_np_to_tensor
 from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE, Column, FileSuffix
+from lfmc.common.labels import read_labels
 from lfmc.model import bands
-from lfmc.model.labels import read_labels
 from lfmc.model.mode import Mode
 from lfmc.model.padding import DEFAULT_PADDING, pad_dates
 from lfmc.model.splits import get_mode_from_hex, num_splits
