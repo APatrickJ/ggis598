@@ -86,7 +86,7 @@ class LFMCDataset(Dataset):
                     self.h5pys.append(filepath)
                 else:
                     self.tifs.append(filepath)
-                start_date, _ = pad_dates(row[Column.SAMPLING_DATE], DEFAULT_PADDING)
+                start_date, _ = pad_dates(row[Column.SAMPLING_DATE].date(), DEFAULT_PADDING)
                 stem_to_sample[filepath.stem] = SampleData(
                     sorting_id=row[Column.SORTING_ID],
                     lfmc_value=row[Column.LFMC_VALUE],

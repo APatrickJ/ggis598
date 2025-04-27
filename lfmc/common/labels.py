@@ -35,5 +35,5 @@ def read_labels(path: Path) -> pd.DataFrame:
             Column.ELEVATION: "first",
         }
     )
-    grouped[Column.SAMPLING_DATE] = pd.to_datetime(grouped[Column.SAMPLING_DATE]).dt.date
+    grouped[Column.SAMPLING_DATE] = pd.to_datetime(grouped[Column.SAMPLING_DATE])
     return grouped
