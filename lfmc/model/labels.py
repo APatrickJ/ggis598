@@ -31,7 +31,7 @@ def read_labels(path: Path) -> pd.DataFrame:
             Column.LFMC_VALUE: "mean",
             Column.STATE_REGION: "first",
             Column.COUNTRY: "first",
-            Column.WORLDCOVER: "first",
+            Column.LANDCOVER: "first",
             Column.ELEVATION: "first",
         }
     )

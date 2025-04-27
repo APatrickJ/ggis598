@@ -79,16 +79,16 @@ def augment_labels(df: pd.DataFrame, worldcover_path: Path, srtm_path: Path) -> 
         return WORLD_COVER_CLASS_MAP[value]
 
     @lru_cache(maxsize=None)
-    def elevation_query(point: Point) -> int | float | None:
+    def srtm_query(point: Point) -> int | float | None:
         return query_spatial_index(point, srtm_spatial_index)
 
     def lookup(row: pd.Series, query_fn: Callable[[Point], Any]) -> pd.Series:
         return pd.Series(query_fn(Point(x=row[Column.LONGITUDE], y=row[Column.LATITUDE])))
 
     tqdm.pandas(desc="Adding WorldCover")
-    df[Column.WORLDCOVER] = df.progress_apply(lookup, axis=1, args=(worldcover_query,))  # type: ignore
+    df[Column.LANDCOVER] = df.progress_apply(lookup, axis=1, args=(worldcover_query,))  # type: ignore
     tqdm.pandas(desc="Adding elevation")
-    df[Column.ELEVATION] = df.progress_apply(lookup, axis=1, args=(elevation_query,))  # type: ignore
+    df[Column.ELEVATION] = df.progress_apply(lookup, axis=1, args=(srtm_query,))  # type: ignore
     return df
 
 
