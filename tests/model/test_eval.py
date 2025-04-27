@@ -2,11 +2,16 @@ from pathlib import Path
 
 from galileo.data.dataset import Normalizer
 from galileo.galileo import Encoder
-from lfmc.model.eval import FinetuningConfig, LFMCEval
+from lfmc.common.const import MeteorologicalSeason, WorldCoverClass
+from lfmc.model.eval import FinetuningConfig, LFMCEval, evaluate_all
 
 
-def test_finetune_and_evaluate(
-    tmp_path: Path, normalizer: Normalizer, encoder: Encoder, data_folder: Path, h5py_folder: Path
+def test_finetune_and_test(
+    tmp_path: Path,
+    normalizer: Normalizer,
+    encoder: Encoder,
+    data_folder: Path,
+    h5py_folder: Path,
 ):
     output_folder = tmp_path / "finetuned"
     output_folder.mkdir(parents=True, exist_ok=True)
@@ -32,16 +37,58 @@ def test_finetune_and_evaluate(
     assert finetuned_model.encoder is not None
     assert finetuned_model.head is not None
 
-    metrics = lfmc_eval.evaluate(
+    labels, preds = lfmc_eval.test(
         name="test",
         finetuned_model=finetuned_model,
         filter=None,
     )
-    assert metrics is not None
-    assert "test" in metrics
-    assert "r2_score" in metrics["test"]
-    assert "mae" in metrics["test"]
-    assert "rmse" in metrics["test"]
-    assert isinstance(metrics["test"]["r2_score"], float)
-    assert isinstance(metrics["test"]["mae"], float)
-    assert isinstance(metrics["test"]["rmse"], float)
+    assert labels is not None
+    assert preds is not None
+    assert labels.shape == preds.shape
+    assert labels.shape[0] == len(list(data_folder.glob("*.tif")))
+    assert preds.shape[0] == len(list(data_folder.glob("*.tif")))
+
+
+def test_evaluate_all(
+    tmp_path: Path,
+    normalizer: Normalizer,
+    encoder: Encoder,
+    data_folder: Path,
+    h5py_folder: Path,
+):
+    output_folder = tmp_path / "results"
+    output_folder.mkdir(parents=True, exist_ok=True)
+    results = evaluate_all(
+        normalizer=normalizer,
+        pretrained_model=encoder,
+        data_folder=data_folder,
+        h5py_folder=h5py_folder,
+        output_folder=output_folder,
+    )
+    assert results is not None
+    assert isinstance(results, dict)
+    filter_names = [
+        "all",
+        MeteorologicalSeason.WINTER,
+        MeteorologicalSeason.SPRING,
+        MeteorologicalSeason.SUMMER,
+        MeteorologicalSeason.AUTUMN,
+        WorldCoverClass.TREE_COVER,
+        WorldCoverClass.SHRUBLAND,
+        WorldCoverClass.GRASSLAND,
+        "elevation_500_1000",
+        "elevation_1000_1500",
+        "elevation_1500_2000",
+        "elevation_2000_2500",
+        "high_fire_danger",
+        "low_fire_danger",
+    ]
+
+    for filter_name in filter_names:
+        assert filter_name in results
+        assert "r2_score" in results[filter_name]
+        assert "mae" in results[filter_name]
+        assert "rmse" in results[filter_name]
+        assert isinstance(results[filter_name]["r2_score"], float)
+        assert isinstance(results[filter_name]["mae"], float)
+        assert isinstance(results[filter_name]["rmse"], float)
