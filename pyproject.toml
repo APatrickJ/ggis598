@@ -9,6 +9,7 @@ analyze-csv = "lfmc.prepare.analyze_csv:main"
 augment-labels = "lfmc.prepare.augment_labels:main"
 create-h5pys = "lfmc.prepare.create_h5pys:main"
 finetune-model = "lfmc.train.finetune_model:main"
+evaluate-model = "lfmc.train.evaluate_model:main"
 
 [tool.setuptools]
 packages = ["galileo", "lfmc"]
