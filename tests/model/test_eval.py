@@ -5,7 +5,9 @@ from galileo.galileo import Encoder
 from lfmc.model.eval import FinetuningConfig, LFMCEval
 
 
-def test_finetune(tmp_path: Path, normalizer: Normalizer, encoder: Encoder, data_folder: Path, h5py_folder: Path):
+def test_finetune_and_evaluate(
+    tmp_path: Path, normalizer: Normalizer, encoder: Encoder, data_folder: Path, h5py_folder: Path
+):
     output_folder = tmp_path / "finetuned"
     output_folder.mkdir(parents=True, exist_ok=True)
     lfmc_eval = LFMCEval(
@@ -21,11 +23,25 @@ def test_finetune(tmp_path: Path, normalizer: Normalizer, encoder: Encoder, data
         batch_size=16,
         patience=5,
     )
-    result = lfmc_eval.finetune(
+    finetuned_model = lfmc_eval.finetune(
         pretrained_model=encoder,
         output_folder=output_folder,
         finetuning_config=finetuning_config,
     )
-    assert result is not None
-    assert result.encoder is not None
-    assert result.head is not None
+    assert finetuned_model is not None
+    assert finetuned_model.encoder is not None
+    assert finetuned_model.head is not None
+
+    metrics = lfmc_eval.evaluate(
+        name="test",
+        finetuned_model=finetuned_model,
+        filter=None,
+    )
+    assert metrics is not None
+    assert "test" in metrics
+    assert "r2_score" in metrics["test"]
+    assert "mae" in metrics["test"]
+    assert "rmse" in metrics["test"]
+    assert isinstance(metrics["test"]["r2_score"], float)
+    assert isinstance(metrics["test"]["mae"], float)
+    assert isinstance(metrics["test"]["rmse"], float)

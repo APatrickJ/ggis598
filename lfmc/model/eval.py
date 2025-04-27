@@ -2,19 +2,26 @@ from copy import deepcopy
 from logging import getLogger
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from galileo.data.dataset import Normalizer
 from galileo.galileo import Encoder
 from galileo.utils import device
+from lfmc.common.const import MAX_LFMC_VALUE
+from lfmc.common.filter import Filter
 from lfmc.model.dataset import LFMCDataset
 from lfmc.model.finetuning import DEFAULT_FINETUNING_CONFIG, FinetuningConfig, FineTuningModel
 from lfmc.model.hyperparameters import DEFAULT_HYPERPARAMETERS, HyperParameters
+from lfmc.model.mode import Mode
 
 logger = getLogger(__name__)
+
+ResultsDict = dict[str, dict[str, float]]
 
 
 class LFMCEval:
@@ -161,3 +168,64 @@ class LFMCEval:
         torch.save(finetuning_model.state_dict(), output_folder / "lfmc_model.pth")
         finetuning_model.eval()
         return finetuning_model
+
+    def evaluate(
+        self,
+        name: str,
+        finetuned_model: FineTuningModel,
+        filter: Filter | None = None,
+        hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
+    ) -> ResultsDict:
+        test_dataset = LFMCDataset(
+            normalizer=self.normalizer,
+            data_folder=self.data_folder,
+            h5py_folder=self.h5py_folder,
+            h5pys_only=self.h5pys_only,
+            output_hw=self.output_hw,
+            output_timesteps=self.output_timesteps,
+            mode=Mode.VALIDATION,
+            split_id=self.split_id,
+            filter=filter,
+        )
+        test_loader = DataLoader(
+            test_dataset,
+            batch_size=hyperparams.batch_size,
+            shuffle=False,
+            num_workers=hyperparams.num_workers,
+        )
+
+        preds_list = []
+        labels_list = []
+        for masked_output, label in tqdm(test_loader, desc=f"Evaluating {name}", leave=False):
+            s_t_x, sp_x, t_x, st_x, s_t_m, sp_m, t_m, st_m, months = [x.to(device) for x in masked_output]
+            finetuned_model.eval()
+            with torch.no_grad():
+                predictions = finetuned_model(
+                    s_t_x,
+                    sp_x,
+                    t_x,
+                    st_x,
+                    s_t_m,
+                    sp_m,
+                    t_m,
+                    st_m,
+                    months,
+                    patch_size=self.patch_size,
+                )[:, 0]
+                preds_list.append(predictions.cpu().numpy())
+                labels_list.append(label.cpu().numpy())
+
+        all_preds = np.concatenate(preds_list)
+        all_labels = np.concatenate(labels_list)
+        return self._compute_metrics(name, all_preds, all_labels)
+
+    def _compute_metrics(self, name: str, preds: np.ndarray, labels: np.ndarray) -> ResultsDict:
+        adjusted_preds = preds * MAX_LFMC_VALUE
+        adjusted_labels = labels * MAX_LFMC_VALUE
+        return {
+            name: {
+                "r2_score": r2_score(adjusted_labels, adjusted_preds),
+                "mae": mean_absolute_error(adjusted_labels, adjusted_preds),
+                "rmse": root_mean_squared_error(adjusted_labels, adjusted_preds),
+            }
+        }
