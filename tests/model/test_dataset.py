@@ -1,14 +1,13 @@
 from pathlib import Path
+from typing import Sequence
 
 import pytest
 
-import lfmc
 from galileo.data.dataset import Normalizer
 from lfmc.common.const import MeteorologicalSeason, WorldCoverClass
 from lfmc.common.filter import Filter
 from lfmc.model.dataset import LFMCDataset
-
-ROOT_DIR = Path(lfmc.__file__).parent.parent
+from lfmc.model.splits import num_splits
 
 
 def test_dataset_all_samples(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
@@ -32,6 +31,32 @@ def test_dataset_split(data_folder: Path, h5py_folder: Path, normalizer: Normali
     train_dataset, validation_dataset = dataset.split()
     assert len(train_dataset) == 7
     assert len(validation_dataset) == 3
+
+
+def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
+    def assert_sets_unique(sets: Sequence[set[float]]):
+        assert len(sets) == len({frozenset(s) for s in sets})
+
+    training_samples_by_split_id: dict[int, set[float]] = {}
+    validation_samples_by_split_id: dict[int, set[float]] = {}
+    for split_id in range(num_splits()):
+        dataset = LFMCDataset(
+            normalizer=normalizer,
+            data_folder=data_folder,
+            h5py_folder=h5py_folder,
+            h5pys_only=False,
+            split_id=split_id,
+        )
+        train_dataset, validation_dataset = dataset.split()
+        for i in range(len(train_dataset)):
+            _, lfmc_value = train_dataset[i]
+            training_samples_by_split_id.setdefault(split_id, set()).add(lfmc_value)
+        for i in range(len(validation_dataset)):
+            _, lfmc_value = validation_dataset[i]
+            validation_samples_by_split_id.setdefault(split_id, set()).add(lfmc_value)
+
+    assert_sets_unique(list(training_samples_by_split_id.values()))
+    assert_sets_unique(list(validation_samples_by_split_id.values()))
 
 
 @pytest.mark.parametrize(
