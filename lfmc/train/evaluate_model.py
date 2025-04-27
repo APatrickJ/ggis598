@@ -70,9 +70,10 @@ def main():
 
     logger.info("Device: %s", device)
 
+    pretrained_model = Encoder.load_from_folder(args.pretrained_model_folder)
     results = evaluate_all(
         normalizer=load_normalizer(args.config_dir),
-        pretrained_model_folder=Encoder.load_from_folder(args.pretrained_model_folder),
+        pretrained_model=pretrained_model,
         data_folder=args.data_folder,
         h5py_folder=args.h5py_folder,
         output_folder=args.output_folder,
