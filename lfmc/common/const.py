@@ -57,7 +57,7 @@ CONUS_STATES = [
 
 LABELS_PATH = Path("data/labels/lfmc_data_conus.csv")
 
-MAX_LFMC_VALUE = 327  # 99th percentile of the LFMC values
+MAX_LFMC_VALUE = 302  # 99.9th percentile of the LFMC values
 
 
 class Column(StrEnum):
