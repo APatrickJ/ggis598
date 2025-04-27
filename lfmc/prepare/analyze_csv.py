@@ -23,12 +23,12 @@ def analyze_csv(input_csv_path: Path):
     logging.info("State regions and counts:\n%s", df[Column.STATE_REGION].value_counts())
     logging.info("Landcover classes and counts:\n%s", df[Column.LANDCOVER].value_counts())
     logging.info("Elevation range: %d - %d", df[Column.ELEVATION].min(), df[Column.ELEVATION].max())
-    for i in range(0, 3500, 250):
+    for i in range(0, 3500, 500):
         logging.info(
             "Elevation count in range %d - %d: %d",
             i,
-            i + 250,
-            len(df[df[Column.ELEVATION].between(i, i + 250, inclusive="left")]),
+            i + 500,
+            len(df[df[Column.ELEVATION].between(i, i + 500, inclusive="left")]),
         )
     for season in METEOROLOGICAL_SEASON_MONTHS.keys():
         logging.info(
