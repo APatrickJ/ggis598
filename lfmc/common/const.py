@@ -131,3 +131,7 @@ METEOROLOGICAL_SEASON_MONTHS = frozendict(
         MeteorologicalSeason.AUTUMN: frozenset({9, 10, 11}),
     }
 )
+
+
+# "LFMC exhibited a strong effect below 100%, but marginal above this threshold"
+HIGH_FIRE_DANGER_THRESHOLD = 100
