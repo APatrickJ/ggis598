@@ -60,6 +60,11 @@ def main():
         action=argparse.BooleanOptionalAction,
         default=False,
     )
+    parser.add_argument(
+        "--patch_size",
+        type=int,
+        default=16,
+    )
     args = parser.parse_args()
 
     logger.info("Device: %s", device)
@@ -69,6 +74,7 @@ def main():
         data_folder=args.data_folder,
         h5py_folder=args.h5py_folder,
         h5pys_only=args.h5pys_only,
+        patch_size=args.patch_size,
     )
     finetune_model(
         lfmc_eval=lfmc_eval,

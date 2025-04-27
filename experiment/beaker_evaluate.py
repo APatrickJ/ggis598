@@ -17,18 +17,21 @@ from .beaker_args import BeakerArgs, add_common_beaker_args, get_beaker_args
 
 def launch_experiment(
     beaker_args: BeakerArgs,
+    model_folder: Path,
     data_folder: Path,
     h5py_folder: Path,
-    model_folder: Path,
     h5pys_only: bool,
+    patch_size: int,
 ) -> None:
     """Launch experiment for LFMC model evaluation on Beaker.
 
     Args:
         beaker_args: The Beaker arguments
+        model_folder: The folder containing the pretrained model
         data_folder: The folder containing the training data
         h5py_folder: The folder containing the H5py files
-        model_folder: The folder containing the pretrained model
+        h5pys_only: Whether to only use H5pys, not TIFs
+        patch_size: The patch size
     """
     beaker = Beaker.from_env(default_workspace=beaker_args.workspace)
     weka_path = PurePath("/weka")
@@ -41,6 +44,7 @@ def launch_experiment(
             f"--data_folder={str(weka_path / data_folder.relative_to('/'))}",
             f"--h5py_folder={str(weka_path / h5py_folder.relative_to('/'))}",
             f"--pretrained_model_folder=/stage/data/models/{model_folder}",
+            f"--patch_size={patch_size}",
         ]
         if h5pys_only:
             arguments.append("--h5pys_only")
@@ -81,6 +85,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Launch Beaker experiment for LFMC model finetuning")
     add_common_beaker_args(parser)
     parser.add_argument(
+        "--model_folder",
+        type=Path,
+        help="The folder containing the pretrained model",
+        default="nano",
+    )
+    parser.add_argument(
         "--data_folder",
         type=Path,
         help="The folder containing the training data",
@@ -96,19 +106,19 @@ if __name__ == "__main__":
         help="Only use H5pys, not TIFs",
     )
     parser.add_argument(
-        "--model_folder",
-        type=Path,
-        help="The folder containing the pretrained model",
-        default="nano",
+        "--patch_size",
+        type=int,
+        help="The patch size",
+        default=16,
     )
-
     args = parser.parse_args()
     beaker_args = get_beaker_args(args)
 
     launch_experiment(
         beaker_args=beaker_args,
+        model_folder=args.model_folder,
         data_folder=args.data_folder,
         h5py_folder=args.h5py_folder,
         h5pys_only=args.h5pys_only,
-        model_folder=args.model_folder,
+        patch_size=args.patch_size,
     )
