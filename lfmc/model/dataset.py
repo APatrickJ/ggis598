@@ -19,6 +19,7 @@ from galileo.data.dataset import (
 from galileo.masking import MaskedOutput
 from galileo.utils import masked_output_np_to_tensor
 from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE, Column, FileSuffix
+from lfmc.common.filter import Filter, apply_filter
 from lfmc.common.labels import read_labels
 from lfmc.model import bands
 from lfmc.model.mode import Mode
@@ -49,6 +50,7 @@ class LFMCDataset(Dataset):
         static_bands: FrozenList[str] = FrozenList(bands.STATIC_BANDS),
         mode: Mode = Mode.TRAIN,
         split_id: int | None = None,
+        filter: Filter | None = None,
     ):
         super().__init__(
             data_folder,
@@ -75,7 +77,7 @@ class LFMCDataset(Dataset):
         self.h5pys: list[Path] = []
         stem_to_sample: dict[str, SampleData] = {}
 
-        data = read_labels(LABELS_PATH)
+        data = apply_filter(read_labels(LABELS_PATH), filter)
 
         suffix = FileSuffix.H5 if h5pys_only else FileSuffix.TIF
         folder = h5py_folder if h5pys_only else data_folder
