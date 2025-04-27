@@ -309,6 +309,7 @@ def evaluate_all(
     hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
     finetuning_config: FinetuningConfig = DEFAULT_FINETUNING_CONFIG,
 ) -> ResultsDict:
+    """Performs k-fold cross validation on the model."""
     filters = {
         "all": None,
         MeteorologicalSeason.WINTER: Filter(seasons={MeteorologicalSeason.WINTER}),
