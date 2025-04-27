@@ -12,12 +12,13 @@ from tqdm import tqdm
 from galileo.data.dataset import Normalizer
 from galileo.galileo import Encoder
 from galileo.utils import device
-from lfmc.common.const import MAX_LFMC_VALUE
+from lfmc.common.const import MAX_LFMC_VALUE, MeteorologicalSeason, WorldCoverClass
 from lfmc.common.filter import Filter
 from lfmc.model.dataset import LFMCDataset
 from lfmc.model.finetuning import DEFAULT_FINETUNING_CONFIG, FinetuningConfig, FineTuningModel
 from lfmc.model.hyperparameters import DEFAULT_HYPERPARAMETERS, HyperParameters
 from lfmc.model.mode import Mode
+from lfmc.model.splits import num_splits
 
 logger = getLogger(__name__)
 
@@ -169,13 +170,13 @@ class LFMCEval:
         finetuning_model.eval()
         return finetuning_model
 
-    def evaluate(
+    def test(
         self,
         name: str,
         finetuned_model: FineTuningModel,
         filter: Filter | None = None,
         hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
-    ) -> ResultsDict:
+    ) -> tuple[np.ndarray, np.ndarray]:
         test_dataset = LFMCDataset(
             normalizer=self.normalizer,
             data_folder=self.data_folder,
@@ -194,8 +195,8 @@ class LFMCEval:
             num_workers=hyperparams.num_workers,
         )
 
-        preds_list = []
         labels_list = []
+        preds_list = []
         for masked_output, label in tqdm(test_loader, desc=f"Evaluating {name}", leave=False):
             s_t_x, sp_x, t_x, st_x, s_t_m, sp_m, t_m, st_m, months = [x.to(device) for x in masked_output]
             finetuned_model.eval()
@@ -212,14 +213,16 @@ class LFMCEval:
                     months,
                     patch_size=self.patch_size,
                 )[:, 0]
-                preds_list.append(predictions.cpu().numpy())
                 labels_list.append(label.cpu().numpy())
+                preds_list.append(predictions.cpu().numpy())
 
-        all_preds = np.concatenate(preds_list)
-        all_labels = np.concatenate(labels_list)
-        return self._compute_metrics(name, all_preds, all_labels)
+        all_labels = np.concatenate(labels_list) if len(labels_list) > 0 else np.array([])
+        all_preds = np.concatenate(preds_list) if len(preds_list) > 0 else np.array([])
+        return all_labels, all_preds
 
-    def _compute_metrics(self, name: str, preds: np.ndarray, labels: np.ndarray) -> ResultsDict:
+    def compute_metrics(self, name: str, preds: np.ndarray, labels: np.ndarray) -> ResultsDict:
+        if preds.size == 0 or labels.size == 0:
+            return {}
         adjusted_preds = preds * MAX_LFMC_VALUE
         adjusted_labels = labels * MAX_LFMC_VALUE
         return {
@@ -229,3 +232,70 @@ class LFMCEval:
                 "rmse": root_mean_squared_error(adjusted_labels, adjusted_preds),
             }
         }
+
+
+def evaluate_all(
+    normalizer: Normalizer,
+    pretrained_model: Encoder,
+    data_folder: Path,
+    h5py_folder: Path,
+    output_folder: Path,
+    h5pys_only: bool = False,
+    output_hw: int = 32,
+    output_timesteps: int = 12,
+    patch_size: int = 16,
+    hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
+    finetuning_config: FinetuningConfig = DEFAULT_FINETUNING_CONFIG,
+) -> ResultsDict:
+    filters = {
+        "all": None,
+        MeteorologicalSeason.WINTER: Filter(seasons={MeteorologicalSeason.WINTER}),
+        MeteorologicalSeason.SPRING: Filter(seasons={MeteorologicalSeason.SPRING}),
+        MeteorologicalSeason.SUMMER: Filter(seasons={MeteorologicalSeason.SUMMER}),
+        MeteorologicalSeason.AUTUMN: Filter(seasons={MeteorologicalSeason.AUTUMN}),
+        WorldCoverClass.TREE_COVER: Filter(landcover={WorldCoverClass.TREE_COVER}),
+        WorldCoverClass.GRASSLAND: Filter(landcover={WorldCoverClass.GRASSLAND}),
+        WorldCoverClass.SHRUBLAND: Filter(landcover={WorldCoverClass.SHRUBLAND}),
+        WorldCoverClass.BUILT_UP: Filter(landcover={WorldCoverClass.BUILT_UP}),
+        WorldCoverClass.BARE_VEGETATION: Filter(landcover={WorldCoverClass.BARE_VEGETATION}),
+        "elevation_0_500": Filter(elevation=(0, 500)),
+        "elevation_500_1000": Filter(elevation=(500, 1000)),
+        "elevation_1000_1500": Filter(elevation=(1000, 1500)),
+        "elevation_1500_2000": Filter(elevation=(1500, 2000)),
+        "elevation_2000_2500": Filter(elevation=(2000, 2500)),
+        "elevation_2500_3000": Filter(elevation=(2500, 3000)),
+        "elevation_3000_3500": Filter(elevation=(3000, 3500)),
+        "high_fire_danger": Filter(high_fire_danger=True),
+        "low_fire_danger": Filter(high_fire_danger=False),
+    }
+
+    all_labels_by_name: dict[str, list[np.ndarray]] = {}
+    all_preds_by_name: dict[str, list[np.ndarray]] = {}
+    for split_id in tqdm(range(num_splits()), desc="Processing splits"):
+        lfmc_eval = LFMCEval(
+            normalizer=normalizer,
+            data_folder=data_folder,
+            h5py_folder=h5py_folder,
+            h5pys_only=h5pys_only,
+            output_hw=output_hw,
+            output_timesteps=output_timesteps,
+            patch_size=patch_size,
+            split_id=split_id,
+        )
+
+        split_output_folder = output_folder / f"split_{split_id}"
+        split_output_folder.mkdir(parents=True, exist_ok=True)
+        finetuned_model = lfmc_eval.finetune(pretrained_model, split_output_folder, hyperparams, finetuning_config)
+
+        for filter_name, filter in filters.items():
+            labels, preds = lfmc_eval.test(filter_name, finetuned_model, filter=filter)
+            all_labels_by_name.setdefault(filter_name, []).append(labels)
+            all_preds_by_name.setdefault(filter_name, []).append(preds)
+
+    all_results = {}
+    for filter_name in filters.keys():
+        all_labels = np.concatenate(all_labels_by_name[filter_name])
+        all_preds = np.concatenate(all_preds_by_name[filter_name])
+        results = lfmc_eval.compute_metrics(filter_name, all_preds, all_labels)
+        all_results.update(results)
+    return all_results
