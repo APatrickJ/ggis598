@@ -85,18 +85,32 @@ class FileSuffix(StrEnum):
 WGS84_EPSG = 4326
 
 
+class WorldCoverClass(StrEnum):
+    TREE_COVER = "Tree cover"
+    SHRUBLAND = "Shrubland"
+    GRASSLAND = "Grassland"
+    CROPLAND = "Cropland"
+    BUILT_UP = "Built-up"
+    BARE_VEGETATION = "Bare / sparse vegetation"
+    SNOW_AND_ICE = "Snow and ice"
+    WATER = "Permanent water bodies"
+    HERBACEOUS_WETLAND = "Herbaceous wetland"
+    MANGROVES = "Mangroves"
+    MOSS_AND_LICHEN = "Moss and lichen"
+
+
 WORLD_COVER_CLASS_MAP = frozendict(
     {
-        10: "Tree cover",
-        20: "Shrubland",
-        30: "Grassland",
-        40: "Cropland",
-        50: "Built-up",
-        60: "Bare / sparse vegetation",
-        70: "Snow and ice",
-        80: "Permanent water bodies",
-        90: "Herbaceous wetland",
-        95: "Mangroves",
-        100: "Moss and lichen",
+        10: WorldCoverClass.TREE_COVER,
+        20: WorldCoverClass.SHRUBLAND,
+        30: WorldCoverClass.GRASSLAND,
+        40: WorldCoverClass.CROPLAND,
+        50: WorldCoverClass.BUILT_UP,
+        60: WorldCoverClass.BARE_VEGETATION,
+        70: WorldCoverClass.SNOW_AND_ICE,
+        80: WorldCoverClass.WATER,
+        90: WorldCoverClass.HERBACEOUS_WETLAND,
+        95: WorldCoverClass.MANGROVES,
+        100: WorldCoverClass.MOSS_AND_LICHEN,
     }
 )
