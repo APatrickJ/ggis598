@@ -57,6 +57,11 @@ def main():
         default=False,
     )
     parser.add_argument(
+        "--output_hw",
+        type=int,
+        default=32,
+    )
+    parser.add_argument(
         "--patch_size",
         type=int,
         default=16,
@@ -73,6 +78,7 @@ def main():
         output_folder=args.output_folder,
         h5pys_only=args.h5pys_only,
         patch_size=args.patch_size,
+        output_hw=args.output_hw,
     )
 
     with open(args.output_folder / "results.json", "w") as f:

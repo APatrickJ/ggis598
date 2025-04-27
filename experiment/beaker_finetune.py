@@ -21,6 +21,7 @@ def launch_experiment(
     data_folder: Path,
     h5py_folder: Path,
     h5pys_only: bool,
+    output_hw: int,
     patch_size: int,
 ) -> None:
     """Launch experiment for LFMC model finetuning on Beaker.
@@ -31,6 +32,7 @@ def launch_experiment(
         data_folder: The folder containing the training data
         h5py_folder: The folder containing the H5py files
         h5pys_only: Whether to only use H5pys, not TIFs
+        output_hw: The output height and width
         patch_size: The patch size
     """
     beaker = Beaker.from_env(default_workspace=beaker_args.workspace)
@@ -44,6 +46,7 @@ def launch_experiment(
             f"--data_folder={str(weka_path / data_folder.relative_to('/'))}",
             f"--h5py_folder={str(weka_path / h5py_folder.relative_to('/'))}",
             f"--pretrained_model_folder=/stage/data/models/{model_folder}",
+            f"--output_hw={output_hw}",
             f"--patch_size={patch_size}",
         ]
         if h5pys_only:
@@ -106,6 +109,12 @@ if __name__ == "__main__":
         help="Only use H5pys, not TIFs",
     )
     parser.add_argument(
+        "--output_hw",
+        type=int,
+        help="The output height and width",
+        default=32,
+    )
+    parser.add_argument(
         "--patch_size",
         type=int,
         help="The patch size",
@@ -120,5 +129,6 @@ if __name__ == "__main__":
         h5py_folder=args.h5py_folder,
         h5pys_only=args.h5pys_only,
         model_folder=args.model_folder,
+        output_hw=args.output_hw,
         patch_size=args.patch_size,
     )
