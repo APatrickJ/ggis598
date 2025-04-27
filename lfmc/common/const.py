@@ -114,3 +114,20 @@ WORLD_COVER_CLASS_MAP = frozendict(
         100: WorldCoverClass.MOSS_AND_LICHEN,
     }
 )
+
+
+class MeteorologicalSeason(StrEnum):
+    WINTER = "Winter"
+    SPRING = "Spring"
+    SUMMER = "Summer"
+    AUTUMN = "Autumn"
+
+
+METEOROLOGICAL_SEASON_MONTHS = frozendict(
+    {
+        MeteorologicalSeason.WINTER: frozenset({12, 1, 2}),
+        MeteorologicalSeason.SPRING: frozenset({3, 4, 5}),
+        MeteorologicalSeason.SUMMER: frozenset({6, 7, 8}),
+        MeteorologicalSeason.AUTUMN: frozenset({9, 10, 11}),
+    }
+)
