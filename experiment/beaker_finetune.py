@@ -93,7 +93,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--h5pys_only",
         action=argparse.BooleanOptionalAction,
-        help="Only create H5pys, do not finetune the model",
+        help="Only use H5pys, not TIFs",
     )
     parser.add_argument(
         "--model_folder",
