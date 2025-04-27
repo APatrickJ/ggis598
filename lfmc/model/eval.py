@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from logging import getLogger
 from pathlib import Path
 
@@ -23,6 +24,14 @@ from lfmc.model.splits import num_splits
 logger = getLogger(__name__)
 
 ResultsDict = dict[str, dict[str, float]]
+
+
+@dataclass
+class FinetuningState:
+    epoch: int
+    best_model_dict: dict | None
+    best_loss: torch.Tensor | None
+    epochs_since_improvement: int
 
 
 class LFMCEval:
@@ -54,6 +63,47 @@ class LFMCEval:
         finetuning_model.train()
         return finetuning_model
 
+    def _save_checkpoint(
+        self,
+        checkpoint_folder: Path,
+        model: FineTuningModel,
+        optimizer: torch.optim.Optimizer,
+        state: FinetuningState,
+    ):
+        checkpoint_dict = {
+            "epoch": state.epoch + 1,
+            "state_dict": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "best_model_dict": state.best_model_dict,
+            "best_loss": state.best_loss,
+            "epochs_since_improvement": state.epochs_since_improvement,
+        }
+        torch.save(checkpoint_dict, checkpoint_folder / "checkpoint.pth")
+
+    def _load_checkpoint(
+        self,
+        checkpoint_folder: Path,
+        model: FineTuningModel,
+        optimizer: torch.optim.Optimizer,
+        state: FinetuningState,
+    ) -> tuple[FineTuningModel, torch.optim.Optimizer, FinetuningState]:
+        checkpoint_path = checkpoint_folder / "checkpoint.pth"
+        if not checkpoint_path.exists():
+            return model, optimizer, state
+        checkpoint = torch.load(checkpoint_path)
+        model.load_state_dict(checkpoint["state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        return (
+            model,
+            optimizer,
+            FinetuningState(
+                epoch=checkpoint["epoch"],
+                best_model_dict=checkpoint["best_model_dict"],
+                best_loss=checkpoint["best_loss"],
+                epochs_since_improvement=checkpoint["epochs_since_improvement"],
+            ),
+        )
+
     def finetune(
         self,
         pretrained_model: Encoder,
@@ -61,6 +111,15 @@ class LFMCEval:
         hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
         finetuning_config: FinetuningConfig = DEFAULT_FINETUNING_CONFIG,
     ) -> FineTuningModel:
+        finetuning_model = self._new_finetuning_model(pretrained_model)
+
+        # Early return if the model already exists
+        final_model_path = output_folder / "finetuned_model.pth"
+        if final_model_path.exists():
+            finetuning_model.load_state_dict(torch.load(final_model_path))
+            finetuning_model.eval()
+            return finetuning_model
+
         loss_fn = nn.MSELoss()
 
         dataset = LFMCDataset(
@@ -87,19 +146,21 @@ class LFMCEval:
             num_workers=hyperparams.num_workers,
         )
 
-        finetuning_model = self._new_finetuning_model(pretrained_model)
-
-        optimizer = torch.optim.AdamW(
+        optimizer: torch.optim.Optimizer = torch.optim.AdamW(
             finetuning_model.parameters(),
             lr=finetuning_config.learning_rate,
             weight_decay=finetuning_config.weight_decay,
         )
 
-        train_losses = []
-        validation_losses = []
-        best_loss = None
-        best_model_dict = None
-        epochs_since_improvement = 0
+        state = FinetuningState(
+            epoch=0,
+            best_model_dict=None,
+            best_loss=None,
+            epochs_since_improvement=0,
+        )
+
+        # Load checkpoint if it exists
+        finetuning_model, optimizer, state = self._load_checkpoint(output_folder, finetuning_model, optimizer, state)
 
         for epoch in (pbar := tqdm(range(finetuning_config.max_epochs), desc="Finetuning")):
             finetuning_model.train()
@@ -125,7 +186,7 @@ class LFMCEval:
                 loss.backward()
                 optimizer.step()
 
-            train_losses.append(epoch_train_loss / len(train_loader))
+            train_loss = epoch_train_loss / len(train_loader)
 
             finetuning_model.eval()
             all_predictions = []
@@ -148,25 +209,26 @@ class LFMCEval:
                     all_predictions.append(predictions)
                     all_labels.append(label)
 
-            validation_losses.append(
-                torch.mean(loss_fn(torch.cat(all_predictions), torch.cat(all_labels).float().to(device)))
-            )
-            pbar.set_description(f"Train loss: {train_losses[-1]:.4f}, Validation loss: {validation_losses[-1]:.4f}")
-            if best_loss is None or validation_losses[-1] < best_loss:
-                best_loss = validation_losses[-1]
-                best_model_dict = deepcopy(finetuning_model.state_dict())
-                epochs_since_improvement = 0
+            validation_loss = torch.mean(loss_fn(torch.cat(all_predictions), torch.cat(all_labels).float().to(device)))
+            pbar.set_description(f"Train loss: {train_loss:.4f}, Validation loss: {validation_loss:.4f}")
+            is_best = state.best_loss is None or validation_loss < state.best_loss
+            if is_best:
+                state.best_loss = validation_loss
+                state.best_model_dict = deepcopy(finetuning_model.state_dict())
+                state.epochs_since_improvement = 0
             else:
-                epochs_since_improvement += 1
-                if epochs_since_improvement >= finetuning_config.patience:
-                    logger.info(f"Early stopping at epoch {epoch} with validation loss {validation_losses[-1]:.4f}")
+                state.epochs_since_improvement += 1
+                if state.epochs_since_improvement >= finetuning_config.patience:
+                    logger.info(f"Early stopping at epoch {epoch} with validation loss {validation_loss:.4f}")
                     break
 
-        if best_model_dict is None:
+            self._save_checkpoint(output_folder, finetuning_model, optimizer, state)
+
+        if state.best_model_dict is None:
             raise ValueError("No best model found")
 
-        finetuning_model.load_state_dict(best_model_dict)
-        torch.save(finetuning_model.state_dict(), output_folder / "lfmc_model.pth")
+        finetuning_model.load_state_dict(state.best_model_dict)
+        torch.save(finetuning_model.state_dict(), final_model_path)
         finetuning_model.eval()
         return finetuning_model
 
