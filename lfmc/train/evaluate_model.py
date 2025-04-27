@@ -56,6 +56,11 @@ def main():
         action=argparse.BooleanOptionalAction,
         default=False,
     )
+    parser.add_argument(
+        "--patch_size",
+        type=int,
+        default=16,
+    )
     args = parser.parse_args()
 
     logger.info("Device: %s", device)
@@ -67,7 +72,9 @@ def main():
         h5py_folder=args.h5py_folder,
         output_folder=args.output_folder,
         h5pys_only=args.h5pys_only,
+        patch_size=args.patch_size,
     )
+
     with open(args.output_folder / "results.json", "w") as f:
         json.dump(results, f)
 
