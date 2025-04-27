@@ -61,6 +61,11 @@ def main():
         default=False,
     )
     parser.add_argument(
+        "--output_hw",
+        type=int,
+        default=32,
+    )
+    parser.add_argument(
         "--patch_size",
         type=int,
         default=16,
@@ -74,6 +79,7 @@ def main():
         data_folder=args.data_folder,
         h5py_folder=args.h5py_folder,
         h5pys_only=args.h5pys_only,
+        output_hw=args.output_hw,
         patch_size=args.patch_size,
     )
     finetune_model(
