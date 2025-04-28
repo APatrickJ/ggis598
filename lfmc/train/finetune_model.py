@@ -1,11 +1,13 @@
 import argparse
 import logging
+import tempfile
 from pathlib import Path
 
 from galileo.data.config import NORMALIZATION_DICT_FILENAME
 from galileo.data.dataset import Dataset, Normalizer
 from galileo.galileo import Encoder
 from galileo.utils import device
+from lfmc.common.copy import copy_dir
 from lfmc.model.eval import LFMCEval
 
 logger = logging.getLogger(__name__)
@@ -74,19 +76,31 @@ def main():
 
     logger.info("Device: %s", device)
 
-    lfmc_eval = LFMCEval(
-        normalizer=load_normalizer(args.config_dir),
-        data_folder=args.data_folder,
-        h5py_folder=args.h5py_folder,
-        h5pys_only=args.h5pys_only,
-        output_hw=args.output_hw,
-        patch_size=args.patch_size,
-    )
-    finetune_model(
-        lfmc_eval=lfmc_eval,
-        pretrained_model_folder=args.pretrained_model_folder,
-        output_folder=args.output_folder,
-    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+
+        if not args.h5pys_only:
+            local_data_folder = tmp_path / "data"
+            local_data_folder.mkdir(parents=True, exist_ok=False)
+            copy_dir(args.data_folder, local_data_folder)
+
+        local_h5py_folder = tmp_path / "h5py"
+        local_h5py_folder.mkdir(parents=True, exist_ok=False)
+        copy_dir(args.h5py_folder, local_h5py_folder)
+
+        lfmc_eval = LFMCEval(
+            normalizer=load_normalizer(args.config_dir),
+            data_folder=local_data_folder,
+            h5py_folder=local_h5py_folder,
+            h5pys_only=args.h5pys_only,
+            output_hw=args.output_hw,
+            patch_size=args.patch_size,
+        )
+        finetune_model(
+            lfmc_eval=lfmc_eval,
+            pretrained_model_folder=args.pretrained_model_folder,
+            output_folder=args.output_folder,
+        )
 
 
 if __name__ == "__main__":
