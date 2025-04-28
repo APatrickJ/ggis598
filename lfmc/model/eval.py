@@ -44,7 +44,8 @@ class LFMCEval:
         output_hw: int = 32,
         output_timesteps: int = 12,
         patch_size: int = 16,
-        split_id: int = 0,
+        validation_fold: int = 0,
+        test_fold: int = 1,
     ):
         self.normalizer = normalizer
         self.data_folder = data_folder
@@ -53,7 +54,8 @@ class LFMCEval:
         self.output_hw = output_hw
         self.output_timesteps = output_timesteps
         self.patch_size = patch_size
-        self.split_id = split_id
+        self.validation_fold = validation_fold
+        self.test_fold = test_fold
 
     @classmethod
     def _new_finetuning_model(cls, model: Encoder) -> FineTuningModel:
@@ -104,6 +106,20 @@ class LFMCEval:
             ),
         )
 
+    def _create_dataset(self, mode: Mode, filter: Filter | None = None) -> LFMCDataset:
+        return LFMCDataset(
+            normalizer=self.normalizer,
+            data_folder=self.data_folder,
+            h5py_folder=self.h5py_folder,
+            h5pys_only=self.h5pys_only,
+            output_hw=self.output_hw,
+            output_timesteps=self.output_timesteps,
+            mode=mode,
+            validation_fold=self.validation_fold,
+            test_fold=self.test_fold,
+            filter=filter,
+        )
+
     def finetune(
         self,
         pretrained_model: Encoder,
@@ -122,25 +138,14 @@ class LFMCEval:
 
         loss_fn = nn.MSELoss()
 
-        dataset = LFMCDataset(
-            normalizer=self.normalizer,
-            data_folder=self.data_folder,
-            h5py_folder=self.h5py_folder,
-            h5pys_only=self.h5pys_only,
-            output_hw=self.output_hw,
-            output_timesteps=self.output_timesteps,
-            split_id=self.split_id,
-        )
-        train_dataset, validation_dataset = dataset.split()
-
         train_loader = DataLoader(
-            train_dataset,
+            self._create_dataset(Mode.TRAIN),
             batch_size=finetuning_config.batch_size,
             shuffle=True,
             num_workers=hyperparams.num_workers,
         )
         validation_loader = DataLoader(
-            validation_dataset,
+            self._create_dataset(Mode.VALIDATION),
             batch_size=finetuning_config.batch_size,
             shuffle=False,
             num_workers=hyperparams.num_workers,
@@ -239,19 +244,8 @@ class LFMCEval:
         filter: Filter | None = None,
         hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
     ) -> tuple[np.ndarray, np.ndarray]:
-        test_dataset = LFMCDataset(
-            normalizer=self.normalizer,
-            data_folder=self.data_folder,
-            h5py_folder=self.h5py_folder,
-            h5pys_only=self.h5pys_only,
-            output_hw=self.output_hw,
-            output_timesteps=self.output_timesteps,
-            mode=Mode.VALIDATION,
-            split_id=self.split_id,
-            filter=filter,
-        )
         test_loader = DataLoader(
-            test_dataset,
+            self._create_dataset(Mode.TEST, filter),
             batch_size=hyperparams.batch_size,
             shuffle=False,
             num_workers=hyperparams.num_workers,
@@ -334,7 +328,8 @@ def evaluate_all(
 
     all_labels_by_name: dict[str, list[np.ndarray]] = {}
     all_preds_by_name: dict[str, list[np.ndarray]] = {}
-    for split_id in tqdm(range(num_splits()), desc="Processing splits"):
+    for validation_fold in tqdm(range(num_splits()), desc="Processing splits"):
+        test_fold = (validation_fold + 1) % num_splits()
         lfmc_eval = LFMCEval(
             normalizer=normalizer,
             data_folder=data_folder,
@@ -343,10 +338,11 @@ def evaluate_all(
             output_hw=output_hw,
             output_timesteps=output_timesteps,
             patch_size=patch_size,
-            split_id=split_id,
+            validation_fold=validation_fold,
+            test_fold=test_fold,
         )
 
-        split_output_folder = output_folder / f"split_{split_id}"
+        split_output_folder = output_folder / f"v{validation_fold}_t{test_fold}"
         split_output_folder.mkdir(parents=True, exist_ok=True)
         finetuned_model = lfmc_eval.finetune(pretrained_model, split_output_folder, hyperparams, finetuning_config)
 

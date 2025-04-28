@@ -1,4 +1,3 @@
-from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,7 +23,7 @@ from lfmc.common.labels import read_labels
 from lfmc.model import bands
 from lfmc.model.mode import Mode
 from lfmc.model.padding import DEFAULT_PADDING, pad_dates
-from lfmc.model.splits import get_mode_from_hex, num_splits
+from lfmc.model.splits import assign_folds, assign_splits, num_splits
 
 
 @dataclass
@@ -48,8 +47,9 @@ class LFMCDataset(Dataset):
         space_bands: FrozenList[str] = FrozenList(bands.SPACE_BANDS),
         time_bands: FrozenList[str] = FrozenList(bands.TIME_BANDS),
         static_bands: FrozenList[str] = FrozenList(bands.STATIC_BANDS),
-        mode: Mode = Mode.TRAIN,
-        split_id: int | None = None,
+        mode: Mode | None = None,
+        validation_fold: int | None = None,
+        test_fold: int | None = None,
         filter: Filter | None = None,
     ):
         super().__init__(
@@ -71,13 +71,22 @@ class LFMCDataset(Dataset):
         )
 
         self.mode = mode
-        self.split_id = split_id
+        self.validation_fold = validation_fold
+        self.test_fold = test_fold
 
         self.tifs: list[Path] = []
         self.h5pys: list[Path] = []
         stem_to_sample: dict[str, SampleData] = {}
 
         data = apply_filter(read_labels(LABELS_PATH), filter)
+        if mode is not None:
+            if validation_fold is None:
+                raise ValueError("validation_fold must be provided if mode is provided")
+            if test_fold is None:
+                raise ValueError("test_fold must be provided if mode is provided")
+            data = assign_folds(data, Column.SORTING_ID, num_splits())
+            data = assign_splits(data, validation_fold, test_fold)
+            data = data[data["mode"] == mode]
 
         suffix = FileSuffix.H5 if h5pys_only else FileSuffix.TIF
         folder = h5py_folder if h5pys_only else data_folder
@@ -96,31 +105,6 @@ class LFMCDataset(Dataset):
                 )
 
         self.stem_to_sample: frozendict[str, SampleData] = frozendict(stem_to_sample)
-
-    def _create_subset(self, mode: Mode, split_id: int, stems: frozenset[str]) -> "LFMCDataset":
-        new_dataset = deepcopy(self)
-        new_dataset.mode = mode
-        new_dataset.split_id = split_id
-        new_dataset.tifs = [tif for tif in self.tifs if tif.stem in stems]
-        new_dataset.h5pys = [h5py for h5py in self.h5pys if h5py.stem in stems]
-        return new_dataset
-
-    def split(self) -> tuple["LFMCDataset", "LFMCDataset"]:
-        next_split = 0 if self.split_id is None else (self.split_id + 1) % num_splits()
-
-        train_stems = set()
-        validation_stems = set()
-        for stem, sample_data in self.stem_to_sample.items():
-            mode = get_mode_from_hex(sample_data.sorting_id, next_split)
-            if mode == Mode.TRAIN:
-                train_stems.add(stem)
-            else:
-                validation_stems.add(stem)
-
-        return (
-            self._create_subset(Mode.TRAIN, next_split, frozenset(train_stems)),
-            self._create_subset(Mode.VALIDATION, next_split, frozenset(validation_stems)),
-        )
 
     @override
     def month_array_from_file(self, tif_path: Path, num_timesteps: int) -> np.ndarray:

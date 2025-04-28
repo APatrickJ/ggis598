@@ -45,8 +45,8 @@ def test_finetune_and_test(
     assert labels is not None
     assert preds is not None
     assert labels.shape == preds.shape
-    assert labels.shape[0] == len(list(data_folder.glob("*.tif")))
-    assert preds.shape[0] == len(list(data_folder.glob("*.tif")))
+    assert 0 < labels.shape[0] <= len(list(data_folder.glob("*.tif")))
+    assert 0 < preds.shape[0] <= len(list(data_folder.glob("*.tif")))
 
 
 def test_evaluate_all(
