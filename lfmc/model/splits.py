@@ -7,7 +7,7 @@ from lfmc.model.mode import Mode
 
 
 def num_splits() -> int:
-    return int(os.environ.get("NUM_SPLITS", 4))
+    return int(os.environ.get("NUM_SPLITS", 5))
 
 
 def assign_folds(df: pd.DataFrame, id_column: str, n_folds: int) -> pd.DataFrame:
