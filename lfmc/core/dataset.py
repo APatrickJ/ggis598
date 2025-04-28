@@ -22,7 +22,7 @@ from lfmc.core.const import LABELS_PATH, MAX_LFMC_VALUE, Column, FileSuffix
 from lfmc.core.filter import Filter, apply_filter
 from lfmc.core.labels import read_labels
 from lfmc.core.mode import Mode
-from lfmc.core.padding import DEFAULT_PADDING, pad_dates
+from lfmc.core.padding import pad_dates
 from lfmc.core.splits import assign_folds, assign_splits, num_splits
 
 
@@ -97,7 +97,7 @@ class LFMCDataset(Dataset):
                     self.h5pys.append(filepath)
                 else:
                     self.tifs.append(filepath)
-                start_date, _ = pad_dates(row[Column.SAMPLING_DATE].date(), DEFAULT_PADDING)
+                start_date, _ = pad_dates(row[Column.SAMPLING_DATE].date())
                 stem_to_sample[filepath.stem] = SampleData(
                     sorting_id=row[Column.SORTING_ID],
                     lfmc_value=row[Column.LFMC_VALUE],
