@@ -7,7 +7,12 @@ from galileo.data.dataset import Normalizer
 from lfmc.common.const import MeteorologicalSeason, WorldCoverClass
 from lfmc.common.filter import Filter
 from lfmc.model.dataset import LFMCDataset
+from lfmc.model.mode import Mode
 from lfmc.model.splits import num_splits
+
+
+def assert_sets_unique(sets: Sequence[set[float]]):
+    assert len(sets) == len({frozenset(s) for s in sets})
 
 
 def test_dataset_all_samples(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
@@ -20,43 +25,64 @@ def test_dataset_all_samples(data_folder: Path, h5py_folder: Path, normalizer: N
     assert len(dataset) == 10
 
 
-def test_dataset_split(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
-    dataset = LFMCDataset(
-        normalizer=normalizer,
-        data_folder=data_folder,
-        h5py_folder=h5py_folder,
-        h5pys_only=False,
-        split_id=0,
-    )
-    train_dataset, validation_dataset = dataset.split()
-    assert len(train_dataset) == 7
-    assert len(validation_dataset) == 3
-
-
-def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
-    def assert_sets_unique(sets: Sequence[set[float]]):
-        assert len(sets) == len({frozenset(s) for s in sets})
-
-    training_samples_by_split_id: dict[int, set[float]] = {}
-    validation_samples_by_split_id: dict[int, set[float]] = {}
-    for split_id in range(num_splits()):
-        dataset = LFMCDataset(
+def test_dataset_train_validation_test_splits(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
+    def create_dataset(mode: Mode, validation_fold: int, test_fold: int):
+        return LFMCDataset(
             normalizer=normalizer,
             data_folder=data_folder,
             h5py_folder=h5py_folder,
             h5pys_only=False,
-            split_id=split_id,
+            mode=mode,
+            validation_fold=validation_fold,
+            test_fold=test_fold,
         )
-        train_dataset, validation_dataset = dataset.split()
+
+    validation_fold = 0
+    test_fold = 1
+    train_dataset = create_dataset(Mode.TRAIN, validation_fold, test_fold)
+    validation_dataset = create_dataset(Mode.VALIDATION, validation_fold, test_fold)
+    test_dataset = create_dataset(Mode.TEST, validation_fold, test_fold)
+
+    training_samples = {train_dataset[i][1] for i in range(len(train_dataset))}
+    validation_samples = {validation_dataset[i][1] for i in range(len(validation_dataset))}
+    test_samples = {test_dataset[i][1] for i in range(len(test_dataset))}
+    assert_sets_unique([training_samples, validation_samples, test_samples])
+
+
+def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
+    def create_dataset(mode: Mode, validation_fold: int, test_fold: int):
+        return LFMCDataset(
+            normalizer=normalizer,
+            data_folder=data_folder,
+            h5py_folder=h5py_folder,
+            h5pys_only=False,
+            mode=mode,
+            validation_fold=validation_fold,
+            test_fold=test_fold,
+        )
+
+    training_samples_by_split_id: dict[int, set[float]] = {}
+    validation_samples_by_split_id: dict[int, set[float]] = {}
+    test_samples_by_split_id: dict[int, set[float]] = {}
+    for validation_fold in range(num_splits()):
+        test_fold = (validation_fold + 1) % num_splits()
+        train_dataset = create_dataset(Mode.TRAIN, validation_fold, test_fold)
+        validation_dataset = create_dataset(Mode.VALIDATION, validation_fold, test_fold)
+        test_dataset = create_dataset(Mode.TEST, validation_fold, test_fold)
+
         for i in range(len(train_dataset)):
             _, lfmc_value = train_dataset[i]
-            training_samples_by_split_id.setdefault(split_id, set()).add(lfmc_value)
+            training_samples_by_split_id.setdefault(validation_fold, set()).add(lfmc_value)
         for i in range(len(validation_dataset)):
             _, lfmc_value = validation_dataset[i]
-            validation_samples_by_split_id.setdefault(split_id, set()).add(lfmc_value)
+            validation_samples_by_split_id.setdefault(validation_fold, set()).add(lfmc_value)
+        for i in range(len(test_dataset)):
+            _, lfmc_value = test_dataset[i]
+            test_samples_by_split_id.setdefault(validation_fold, set()).add(lfmc_value)
 
     assert_sets_unique(list(training_samples_by_split_id.values()))
     assert_sets_unique(list(validation_samples_by_split_id.values()))
+    assert_sets_unique(list(test_samples_by_split_id.values()))
 
 
 @pytest.mark.parametrize(
