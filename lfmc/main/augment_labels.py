@@ -14,7 +14,7 @@ from rasterio.crs import CRS
 from rasterio.warp import transform
 from tqdm import tqdm
 
-from lfmc.common.const import LABELS_PATH, WGS84_EPSG, WORLD_COVER_CLASS_MAP, Column
+from lfmc.core.const import LABELS_PATH, WGS84_EPSG, WORLD_COVER_CLASS_MAP, Column
 
 
 @dataclass(frozen=True)

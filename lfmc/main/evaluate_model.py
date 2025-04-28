@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import tempfile
 from pathlib import Path
@@ -7,8 +8,8 @@ from galileo.data.config import NORMALIZATION_DICT_FILENAME
 from galileo.data.dataset import Dataset, Normalizer
 from galileo.galileo import Encoder
 from galileo.utils import device
-from lfmc.common.copy import copy_dir
-from lfmc.model.eval import LFMCEval
+from lfmc.core.copy import copy_dir
+from lfmc.core.eval import evaluate_all
 
 logger = logging.getLogger(__name__)
 
@@ -18,18 +19,13 @@ def load_normalizer(config_dir: Path) -> Normalizer:
     return Normalizer(std=True, normalizing_dicts=normalization_dicts)
 
 
-def finetune_model(lfmc_eval: LFMCEval, pretrained_model_folder: Path, output_folder: Path):
-    encoder = Encoder.load_from_folder(pretrained_model_folder)
-    lfmc_eval.finetune(pretrained_model=encoder, output_folder=output_folder)
-
-
 def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.INFO,
     )
-    parser = argparse.ArgumentParser("Finetune the LFMC model")
+    parser = argparse.ArgumentParser("Evaluate the LFMC model")
     parser.add_argument(
         "--pretrained_model_folder",
         type=Path,
@@ -88,19 +84,20 @@ def main():
         local_h5py_folder.mkdir(parents=True, exist_ok=False)
         copy_dir(args.h5py_folder, local_h5py_folder)
 
-        lfmc_eval = LFMCEval(
+        pretrained_model = Encoder.load_from_folder(args.pretrained_model_folder)
+        results = evaluate_all(
             normalizer=load_normalizer(args.config_dir),
+            pretrained_model=pretrained_model,
             data_folder=local_data_folder,
             h5py_folder=local_h5py_folder,
-            h5pys_only=args.h5pys_only,
-            output_hw=args.output_hw,
-            patch_size=args.patch_size,
-        )
-        finetune_model(
-            lfmc_eval=lfmc_eval,
-            pretrained_model_folder=args.pretrained_model_folder,
             output_folder=args.output_folder,
+            h5pys_only=args.h5pys_only,
+            patch_size=args.patch_size,
+            output_hw=args.output_hw,
         )
+
+        with open(args.output_folder / "results.json", "w") as f:
+            json.dump(results, f)
 
 
 if __name__ == "__main__":

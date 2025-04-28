@@ -17,13 +17,13 @@ from galileo.data.dataset import (
 )
 from galileo.masking import MaskedOutput
 from galileo.utils import masked_output_np_to_tensor
-from lfmc.common.const import LABELS_PATH, MAX_LFMC_VALUE, Column, FileSuffix
-from lfmc.common.filter import Filter, apply_filter
-from lfmc.common.labels import read_labels
-from lfmc.model import bands
-from lfmc.model.mode import Mode
-from lfmc.model.padding import DEFAULT_PADDING, pad_dates
-from lfmc.model.splits import assign_folds, assign_splits, num_splits
+from lfmc.core.bands import SPACE_BANDS, SPACE_TIME_BANDS, STATIC_BANDS, TIME_BANDS
+from lfmc.core.const import LABELS_PATH, MAX_LFMC_VALUE, Column, FileSuffix
+from lfmc.core.filter import Filter, apply_filter
+from lfmc.core.labels import read_labels
+from lfmc.core.mode import Mode
+from lfmc.core.padding import DEFAULT_PADDING, pad_dates
+from lfmc.core.splits import assign_folds, assign_splits, num_splits
 
 
 @dataclass
@@ -43,10 +43,10 @@ class LFMCDataset(Dataset):
         h5pys_only: bool = False,
         output_hw: int = 32,
         output_timesteps: int = 12,
-        space_time_bands: FrozenList[str] = FrozenList(bands.SPACE_TIME_BANDS),
-        space_bands: FrozenList[str] = FrozenList(bands.SPACE_BANDS),
-        time_bands: FrozenList[str] = FrozenList(bands.TIME_BANDS),
-        static_bands: FrozenList[str] = FrozenList(bands.STATIC_BANDS),
+        space_time_bands: FrozenList[str] = FrozenList(SPACE_TIME_BANDS),
+        space_bands: FrozenList[str] = FrozenList(SPACE_BANDS),
+        time_bands: FrozenList[str] = FrozenList(TIME_BANDS),
+        static_bands: FrozenList[str] = FrozenList(STATIC_BANDS),
         mode: Mode | None = None,
         validation_fold: int | None = None,
         test_fold: int | None = None,

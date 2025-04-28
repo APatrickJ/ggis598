@@ -13,13 +13,13 @@ from tqdm import tqdm
 from galileo.data.dataset import Normalizer
 from galileo.galileo import Encoder
 from galileo.utils import device
-from lfmc.common.const import MAX_LFMC_VALUE, MeteorologicalSeason, WorldCoverClass
-from lfmc.common.filter import Filter
-from lfmc.model.dataset import LFMCDataset
-from lfmc.model.finetuning import DEFAULT_FINETUNING_CONFIG, FinetuningConfig, FineTuningModel
-from lfmc.model.hyperparameters import DEFAULT_HYPERPARAMETERS, HyperParameters
-from lfmc.model.mode import Mode
-from lfmc.model.splits import num_splits
+from lfmc.core.const import MAX_LFMC_VALUE, MeteorologicalSeason, WorldCoverClass
+from lfmc.core.dataset import LFMCDataset
+from lfmc.core.filter import Filter
+from lfmc.core.finetuning import DEFAULT_FINETUNING_CONFIG, FinetuningConfig, FineTuningModel
+from lfmc.core.hyperparameters import DEFAULT_HYPERPARAMETERS, HyperParameters
+from lfmc.core.mode import Mode
+from lfmc.core.splits import num_splits
 
 logger = getLogger(__name__)
 

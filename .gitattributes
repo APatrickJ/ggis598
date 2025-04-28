@@ -1,2 +1,2 @@
 data/external/Globe-LFMC-2.0[[:space:]]final.xlsx filter=lfs diff=lfs merge=lfs -text
-tests/model/data/*.tif filter=lfs diff=lfs merge=lfs -text
+tests/data/tifs/*.tif filter=lfs diff=lfs merge=lfs -text

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from lfmc.common.const import CONUS_STATES, LABELS_PATH, Column
+from lfmc.core.const import CONUS_STATES, LABELS_PATH, Column
 
 _SHEET_NAME = "LFMC data"
 
