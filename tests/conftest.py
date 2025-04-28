@@ -30,7 +30,7 @@ def encoder() -> Encoder:
 @pytest.fixture
 def data_folder() -> Path:
     current_dir = Path(__file__).parent
-    return Path(current_dir / "data")
+    return Path(current_dir / "data" / "tifs")
 
 
 @pytest.fixture

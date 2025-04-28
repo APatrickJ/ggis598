@@ -3,7 +3,7 @@ from itertools import chain
 
 import pandas as pd
 
-from lfmc.common.const import (
+from lfmc.core.const import (
     HIGH_FIRE_DANGER_THRESHOLD,
     METEOROLOGICAL_SEASON_MONTHS,
     Column,

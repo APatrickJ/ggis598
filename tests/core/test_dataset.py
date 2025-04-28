@@ -4,11 +4,11 @@ from typing import Sequence
 import pytest
 
 from galileo.data.dataset import Normalizer
-from lfmc.common.const import MeteorologicalSeason, WorldCoverClass
-from lfmc.common.filter import Filter
-from lfmc.model.dataset import LFMCDataset
-from lfmc.model.mode import Mode
-from lfmc.model.splits import num_splits
+from lfmc.core.const import MeteorologicalSeason, WorldCoverClass
+from lfmc.core.dataset import LFMCDataset
+from lfmc.core.filter import Filter
+from lfmc.core.mode import Mode
+from lfmc.core.splits import num_splits
 
 
 def assert_sets_unique(sets: Sequence[set[float]]):

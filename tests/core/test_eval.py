@@ -2,8 +2,8 @@ from pathlib import Path
 
 from galileo.data.dataset import Normalizer
 from galileo.galileo import Encoder
-from lfmc.common.const import MeteorologicalSeason, WorldCoverClass
-from lfmc.model.eval import FinetuningConfig, LFMCEval, evaluate_all
+from lfmc.core.const import MeteorologicalSeason, WorldCoverClass
+from lfmc.core.eval import FinetuningConfig, LFMCEval, evaluate_all
 
 
 def test_finetune_and_test(

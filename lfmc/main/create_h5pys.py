@@ -5,7 +5,7 @@ from pathlib import Path
 
 from galileo.data.config import NORMALIZATION_DICT_FILENAME
 from galileo.data.dataset import Dataset, Normalizer
-from lfmc.model.dataset import LFMCDataset
+from lfmc.core.dataset import LFMCDataset
 
 logger = logging.getLogger(__name__)
 

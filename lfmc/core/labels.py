@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from lfmc.common.const import Column
+from lfmc.core.const import Column
 
 
 def read_labels(path: Path) -> pd.DataFrame:

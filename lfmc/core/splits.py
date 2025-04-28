@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 
-from lfmc.model.mode import Mode
+from lfmc.core.mode import Mode
 
 
 def num_splits() -> int:

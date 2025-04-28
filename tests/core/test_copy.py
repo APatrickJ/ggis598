@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from lfmc.common.copy import copy_dir
+from lfmc.core.copy import copy_dir
 
 
 def test_copy_dir(tmp_path: Path):

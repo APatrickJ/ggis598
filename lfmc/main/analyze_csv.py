@@ -2,8 +2,8 @@ import argparse
 import logging
 from pathlib import Path
 
-from lfmc.common.const import LABELS_PATH, METEOROLOGICAL_SEASON_MONTHS, Column
-from lfmc.common.labels import read_labels
+from lfmc.core.const import LABELS_PATH, METEOROLOGICAL_SEASON_MONTHS, Column
+from lfmc.core.labels import read_labels
 
 
 def analyze_csv(input_csv_path: Path):
