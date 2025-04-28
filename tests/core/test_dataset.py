@@ -177,8 +177,8 @@ def test_dataset_filter_elevation(
     "high_fire_danger, expected_len",
     [
         (None, 10),
-        (True, 5),
-        (False, 5),
+        (True, 8),
+        (False, 2),
     ],
 )
 def test_dataset_filter_high_fire_danger(

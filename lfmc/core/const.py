@@ -133,5 +133,5 @@ METEOROLOGICAL_SEASON_MONTHS = frozendict(
 )
 
 
-# "LFMC exhibited a strong effect below 100%, but marginal above this threshold"
-HIGH_FIRE_DANGER_THRESHOLD = 100
+# Use 120% as the high fire danger threshold to match (Zhu et al. 2021)
+HIGH_FIRE_DANGER_THRESHOLD = 120
