@@ -27,9 +27,14 @@ def main():
     )
     parser = argparse.ArgumentParser("Evaluate the LFMC model")
     parser.add_argument(
-        "--pretrained_model_folder",
+        "--pretrained_models_folder",
         type=Path,
-        default=Path("lib/galileo/data/models/nano"),
+        default=Path("data/models"),
+        required=True,
+    )
+    parser.add_argument(
+        "--pretrained_model_name",
+        choices=set(["base", "nano", "tiny"]),
         required=True,
     )
     parser.add_argument(
@@ -90,7 +95,7 @@ def main():
             # Use the original h5py folder so H5py files are saved
             h5py_folder = args.h5py_folder
 
-        pretrained_model = Encoder.load_from_folder(args.pretrained_model_folder)
+        pretrained_model = Encoder.load_from_folder(args.pretrained_models_folder / args.pretrained_model_name)
         results = evaluate_all(
             normalizer=load_normalizer(args.config_dir),
             pretrained_model=pretrained_model,

@@ -17,7 +17,7 @@ from .beaker_args import BeakerArgs, add_common_beaker_args, get_beaker_args
 
 def launch_experiment(
     beaker_args: BeakerArgs,
-    model_folder: Path,
+    model_name: str,
     data_folder: Path,
     h5py_folder: Path,
     h5pys_only: bool,
@@ -45,7 +45,8 @@ def launch_experiment(
             "--config_dir=/stage/data/config",
             f"--data_folder={str(weka_path / data_folder.relative_to('/'))}",
             f"--h5py_folder={str(weka_path / h5py_folder.relative_to('/'))}",
-            f"--pretrained_model_folder=/stage/data/models/{model_folder}",
+            "--pretrained_models_folder=/stage/data/models",
+            f"--pretrained_model_name={model_name}",
             f"--output_hw={output_hw}",
             f"--patch_size={patch_size}",
         ]
@@ -88,10 +89,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Launch Beaker experiment for LFMC model finetuning")
     add_common_beaker_args(parser)
     parser.add_argument(
-        "--model_folder",
-        type=Path,
-        help="The folder containing the pretrained model",
-        default="nano",
+        "--model_name",
+        choices=set(["base", "nano", "tiny"]),
+        help="The name of the pretrained model",
+        required=True,
     )
     parser.add_argument(
         "--data_folder",
@@ -125,7 +126,7 @@ if __name__ == "__main__":
 
     launch_experiment(
         beaker_args=beaker_args,
-        model_folder=args.model_folder,
+        model_name=args.model_name,
         data_folder=args.data_folder,
         h5py_folder=args.h5py_folder,
         h5pys_only=args.h5pys_only,

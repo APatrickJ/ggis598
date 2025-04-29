@@ -18,11 +18,6 @@ def load_normalizer(config_dir: Path) -> Normalizer:
     return Normalizer(std=True, normalizing_dicts=normalization_dicts)
 
 
-def finetune_model(lfmc_eval: LFMCEval, pretrained_model_folder: Path, output_folder: Path):
-    encoder = Encoder.load_from_folder(pretrained_model_folder)
-    lfmc_eval.finetune(pretrained_model=encoder, output_folder=output_folder)
-
-
 def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(message)s",
@@ -31,9 +26,14 @@ def main():
     )
     parser = argparse.ArgumentParser("Finetune the LFMC model")
     parser.add_argument(
-        "--pretrained_model_folder",
+        "--pretrained_models_folder",
         type=Path,
-        default=Path("lib/galileo/data/models/nano"),
+        default=Path("data/models"),
+        required=True,
+    )
+    parser.add_argument(
+        "--pretrained_model_name",
+        choices=set(["base", "nano", "tiny"]),
         required=True,
     )
     parser.add_argument(
@@ -102,11 +102,8 @@ def main():
             output_hw=args.output_hw,
             patch_size=args.patch_size,
         )
-        finetune_model(
-            lfmc_eval=lfmc_eval,
-            pretrained_model_folder=args.pretrained_model_folder,
-            output_folder=args.output_folder,
-        )
+        encoder = Encoder.load_from_folder(args.pretrained_models_folder / args.pretrained_model_name)
+        lfmc_eval.finetune(pretrained_model=encoder, output_folder=args.output_folder)
 
 
 if __name__ == "__main__":
