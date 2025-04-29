@@ -79,19 +79,25 @@ def main():
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = Path(tmp_dir)
 
-        if not args.h5pys_only:
-            local_data_folder = tmp_path / "data"
-            local_data_folder.mkdir(parents=True, exist_ok=False)
-            copy_dir(args.data_folder, local_data_folder)
+        if args.h5pys_only:
+            data_folder = args.data_folder
+        else:
+            data_folder = tmp_path / "data"
+            data_folder.mkdir(parents=True, exist_ok=False)
+            copy_dir(args.data_folder, data_folder)
 
-        local_h5py_folder = tmp_path / "h5py"
-        local_h5py_folder.mkdir(parents=True, exist_ok=False)
-        copy_dir(args.h5py_folder, local_h5py_folder)
+        if args.h5pys_only:
+            h5py_folder = tmp_path / "h5py"
+            h5py_folder.mkdir(parents=True, exist_ok=False)
+            copy_dir(args.h5py_folder, h5py_folder)
+        else:
+            # Use the original h5py folder so H5py files are saved
+            h5py_folder = args.h5py_folder
 
         lfmc_eval = LFMCEval(
             normalizer=load_normalizer(args.config_dir),
-            data_folder=local_data_folder,
-            h5py_folder=local_h5py_folder,
+            data_folder=data_folder,
+            h5py_folder=h5py_folder,
             h5pys_only=args.h5pys_only,
             output_hw=args.output_hw,
             patch_size=args.patch_size,
