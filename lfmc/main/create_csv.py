@@ -41,9 +41,9 @@ def create_csv(
     df = df.rename(columns=_COLUMNS)
 
     logging.info("Filtering the DataFrame by date and location")
-    df = df[df["sampling_date"] >= start_date]
+    df = df[df[Column.SAMPLING_DATE] >= start_date]
     logging.info("After filtering by date, the DataFrame has %d rows", len(df))
-    df = df[(df["country"] == "USA") & (df["state_region"].isin(CONUS_STATES))]
+    df = df[(df[Column.COUNTRY] == "USA") & (df[Column.STATE_REGION].isin(CONUS_STATES))]
     logging.info("After filtering by location, the DataFrame has %d rows", len(df))
 
     logging.info("Writing the CSV file")
