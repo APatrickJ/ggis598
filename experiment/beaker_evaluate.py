@@ -98,16 +98,19 @@ if __name__ == "__main__":
         "--data_folder",
         type=Path,
         help="The folder containing the training data",
+        required=True,
     )
     parser.add_argument(
         "--h5py_folder",
         type=Path,
         help="The folder containing the H5py files",
+        required=True,
     )
     parser.add_argument(
         "--h5pys_only",
         action=argparse.BooleanOptionalAction,
         help="Only use H5pys, not TIFs",
+        default=False,
     )
     parser.add_argument(
         "--output_hw",
