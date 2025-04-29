@@ -26,7 +26,7 @@ from lfmc.core.padding import pad_dates
 from lfmc.core.splits import assign_folds, assign_splits, num_splits
 
 
-@dataclass
+@dataclass(frozen=True)
 class SampleData:
     sorting_id: int
     start_month: int
