@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir data
 COPY data/labels data/labels
 COPY lib/galileo/config data/config
-COPY lib/galileo/data/models data/models
+COPY lib/galileo-data/models data/models
 
 COPY lib/galileo/src galileo
 COPY lfmc lfmc
