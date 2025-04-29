@@ -8,7 +8,7 @@ from galileo.config import BASE_GSD
 from galileo.galileo import Encoder
 
 
-@dataclass
+@dataclass(frozen=True)
 class FinetuningConfig:
     max_epochs: int
     weight_decay: float
