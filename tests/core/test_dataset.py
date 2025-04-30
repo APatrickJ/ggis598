@@ -8,7 +8,7 @@ from lfmc.core.const import MeteorologicalSeason, WorldCoverClass
 from lfmc.core.dataset import LFMCDataset
 from lfmc.core.filter import Filter
 from lfmc.core.mode import Mode
-from lfmc.core.splits import num_splits
+from lfmc.core.splits import num_folds
 
 
 def assert_sets_unique(sets: Sequence[set[float]]):
@@ -64,8 +64,8 @@ def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, norm
     training_samples_by_split_id: dict[int, set[float]] = {}
     validation_samples_by_split_id: dict[int, set[float]] = {}
     test_samples_by_split_id: dict[int, set[float]] = {}
-    for validation_fold in range(num_splits()):
-        test_fold = (validation_fold + 1) % num_splits()
+    for validation_fold in range(num_folds()):
+        test_fold = (validation_fold + 1) % num_folds()
         train_dataset = create_dataset(Mode.TRAIN, frozenset({validation_fold}), frozenset({test_fold}))
         validation_dataset = create_dataset(Mode.VALIDATION, frozenset({validation_fold}), frozenset({test_fold}))
         test_dataset = create_dataset(Mode.TEST, frozenset({validation_fold}), frozenset({test_fold}))

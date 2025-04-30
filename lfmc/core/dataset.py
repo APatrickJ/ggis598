@@ -23,7 +23,7 @@ from lfmc.core.filter import Filter, apply_filter
 from lfmc.core.labels import read_labels
 from lfmc.core.mode import Mode
 from lfmc.core.padding import pad_dates
-from lfmc.core.splits import assign_folds, assign_splits, num_splits
+from lfmc.core.splits import assign_folds, assign_splits, num_folds
 
 
 @dataclass(frozen=True)
@@ -84,7 +84,7 @@ class LFMCDataset(Dataset):
                 raise ValueError("validation_folds must be provided if mode is provided")
             if test_folds is None:
                 raise ValueError("test_folds must be provided if mode is provided")
-            data = assign_folds(data, Column.SORTING_ID, num_splits=num_splits())
+            data = assign_folds(data, Column.SORTING_ID, num_folds=num_folds())
             data = assign_splits(data, validation_folds, test_folds)
             data = data[data["mode"] == mode]
 

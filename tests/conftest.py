@@ -42,5 +42,5 @@ def h5py_folder(tmp_path: Path) -> Path:
 
 @pytest.fixture(autouse=True)
 def set_num_splits(monkeypatch: MonkeyPatch):
-    # Use fewer splits for tests due to the small size of the dataset
-    monkeypatch.setenv("NUM_SPLITS", "4")
+    # Use fewer folds for tests due to the small size of the dataset
+    monkeypatch.setenv("NUM_FOLDS", "4")
