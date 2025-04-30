@@ -81,7 +81,7 @@ def test_finetune_and_evaluate(
         "elevation_1500_2000",
         "elevation_2000_2500",
         "high_fire_danger",
-        "low_fire_danger",
+        "non_high_fire_danger",
     ]
 
     for filter_name in filter_names:
