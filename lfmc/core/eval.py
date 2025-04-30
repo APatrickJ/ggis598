@@ -325,7 +325,7 @@ def finetune_and_evaluate(
         "elevation_2500_3000": Filter(elevation=(2500, 3000)),
         "elevation_3000_3500": Filter(elevation=(3000, 3500)),
         "high_fire_danger": Filter(high_fire_danger=True),
-        "low_fire_danger": Filter(high_fire_danger=False),
+        "non_high_fire_danger": Filter(high_fire_danger=False),
     }
 
     lfmc_eval = LFMCEval(
