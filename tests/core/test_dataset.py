@@ -26,22 +26,22 @@ def test_dataset_all_samples(data_folder: Path, h5py_folder: Path, normalizer: N
 
 
 def test_dataset_train_validation_test_splits(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
-    def create_dataset(mode: Mode, validation_fold: int, test_fold: int):
+    def create_dataset(mode: Mode, validation_folds: frozenset[int], test_folds: frozenset[int]):
         return LFMCDataset(
             normalizer=normalizer,
             data_folder=data_folder,
             h5py_folder=h5py_folder,
             h5pys_only=False,
             mode=mode,
-            validation_fold=validation_fold,
-            test_fold=test_fold,
+            validation_folds=validation_folds,
+            test_folds=test_folds,
         )
 
-    validation_fold = 0
-    test_fold = 1
-    train_dataset = create_dataset(Mode.TRAIN, validation_fold, test_fold)
-    validation_dataset = create_dataset(Mode.VALIDATION, validation_fold, test_fold)
-    test_dataset = create_dataset(Mode.TEST, validation_fold, test_fold)
+    validation_folds = frozenset([0])
+    test_folds = frozenset([1])
+    train_dataset = create_dataset(Mode.TRAIN, validation_folds, test_folds)
+    validation_dataset = create_dataset(Mode.VALIDATION, validation_folds, test_folds)
+    test_dataset = create_dataset(Mode.TEST, validation_folds, test_folds)
 
     training_samples = {train_dataset[i][1] for i in range(len(train_dataset))}
     validation_samples = {validation_dataset[i][1] for i in range(len(validation_dataset))}
@@ -50,15 +50,15 @@ def test_dataset_train_validation_test_splits(data_folder: Path, h5py_folder: Pa
 
 
 def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, normalizer: Normalizer):
-    def create_dataset(mode: Mode, validation_fold: int, test_fold: int):
+    def create_dataset(mode: Mode, validation_folds: frozenset[int], test_folds: frozenset[int]):
         return LFMCDataset(
             normalizer=normalizer,
             data_folder=data_folder,
             h5py_folder=h5py_folder,
             h5pys_only=False,
             mode=mode,
-            validation_fold=validation_fold,
-            test_fold=test_fold,
+            validation_folds=validation_folds,
+            test_folds=test_folds,
         )
 
     training_samples_by_split_id: dict[int, set[float]] = {}
@@ -66,9 +66,9 @@ def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, norm
     test_samples_by_split_id: dict[int, set[float]] = {}
     for validation_fold in range(num_splits()):
         test_fold = (validation_fold + 1) % num_splits()
-        train_dataset = create_dataset(Mode.TRAIN, validation_fold, test_fold)
-        validation_dataset = create_dataset(Mode.VALIDATION, validation_fold, test_fold)
-        test_dataset = create_dataset(Mode.TEST, validation_fold, test_fold)
+        train_dataset = create_dataset(Mode.TRAIN, frozenset({validation_fold}), frozenset({test_fold}))
+        validation_dataset = create_dataset(Mode.VALIDATION, frozenset({validation_fold}), frozenset({test_fold}))
+        test_dataset = create_dataset(Mode.TEST, frozenset({validation_fold}), frozenset({test_fold}))
 
         for i in range(len(train_dataset)):
             _, lfmc_value = train_dataset[i]

@@ -48,8 +48,8 @@ class LFMCDataset(Dataset):
         time_bands: FrozenList[str] = FrozenList(TIME_BANDS),
         static_bands: FrozenList[str] = FrozenList(STATIC_BANDS),
         mode: Mode | None = None,
-        validation_fold: int | None = None,
-        test_fold: int | None = None,
+        validation_folds: frozenset[int] | None = None,
+        test_folds: frozenset[int] | None = None,
         filter: Filter | None = None,
     ):
         super().__init__(
@@ -71,8 +71,8 @@ class LFMCDataset(Dataset):
         )
 
         self.mode = mode
-        self.validation_fold = validation_fold
-        self.test_fold = test_fold
+        self.validation_folds = validation_folds
+        self.test_folds = test_folds
 
         self.tifs: list[Path] = []
         self.h5pys: list[Path] = []
@@ -80,12 +80,12 @@ class LFMCDataset(Dataset):
 
         data = apply_filter(read_labels(LABELS_PATH), filter)
         if mode is not None:
-            if validation_fold is None:
-                raise ValueError("validation_fold must be provided if mode is provided")
-            if test_fold is None:
-                raise ValueError("test_fold must be provided if mode is provided")
-            data = assign_folds(data, Column.SORTING_ID, num_splits())
-            data = assign_splits(data, validation_fold, test_fold)
+            if validation_folds is None:
+                raise ValueError("validation_folds must be provided if mode is provided")
+            if test_folds is None:
+                raise ValueError("test_folds must be provided if mode is provided")
+            data = assign_folds(data, Column.SORTING_ID, num_splits=num_splits())
+            data = assign_splits(data, validation_folds, test_folds)
             data = data[data["mode"] == mode]
 
         suffix = FileSuffix.H5 if h5pys_only else FileSuffix.TIF
