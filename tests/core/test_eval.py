@@ -3,7 +3,7 @@ from pathlib import Path
 from galileo.data.dataset import Normalizer
 from galileo.galileo import Encoder
 from lfmc.core.const import MeteorologicalSeason, WorldCoverClass
-from lfmc.core.eval import FinetuningConfig, LFMCEval, evaluate_all
+from lfmc.core.eval import FinetuningConfig, LFMCEval, finetune_and_evaluate
 
 
 def test_finetune_and_test(
@@ -20,6 +20,8 @@ def test_finetune_and_test(
         data_folder=data_folder,
         h5py_folder=h5py_folder,
         h5pys_only=False,
+        validation_folds=frozenset([0]),
+        test_folds=frozenset([1]),
     )
     finetuning_config = FinetuningConfig(
         max_epochs=1,
@@ -49,7 +51,7 @@ def test_finetune_and_test(
     assert 0 < preds.shape[0] <= len(list(data_folder.glob("*.tif")))
 
 
-def test_evaluate_all(
+def test_finetune_and_evaluate(
     tmp_path: Path,
     normalizer: Normalizer,
     encoder: Encoder,
@@ -58,26 +60,24 @@ def test_evaluate_all(
 ):
     output_folder = tmp_path / "results"
     output_folder.mkdir(parents=True, exist_ok=True)
-    results = evaluate_all(
+    results = finetune_and_evaluate(
         normalizer=normalizer,
         pretrained_model=encoder,
         data_folder=data_folder,
         h5py_folder=h5py_folder,
         output_folder=output_folder,
+        validation_folds=frozenset([0]),
+        test_folds=frozenset([1]),
     )
     assert results is not None
     assert isinstance(results, dict)
     filter_names = [
         "all",
-        MeteorologicalSeason.WINTER,
-        MeteorologicalSeason.SPRING,
+        # Not all keys are present in the results due to the small size of the dataset
         MeteorologicalSeason.SUMMER,
         MeteorologicalSeason.AUTUMN,
         WorldCoverClass.TREE_COVER,
-        WorldCoverClass.SHRUBLAND,
         WorldCoverClass.GRASSLAND,
-        "elevation_500_1000",
-        "elevation_1000_1500",
         "elevation_1500_2000",
         "elevation_2000_2500",
         "high_fire_danger",

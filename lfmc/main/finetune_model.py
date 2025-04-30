@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import tempfile
 from pathlib import Path
@@ -8,7 +9,7 @@ from galileo.data.dataset import Dataset, Normalizer
 from galileo.galileo import Encoder
 from galileo.utils import device
 from lfmc.core.copy import copy_dir
-from lfmc.core.eval import LFMCEval
+from lfmc.core.eval import finetune_and_evaluate
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.INFO,
     )
-    parser = argparse.ArgumentParser("Finetune the LFMC model")
+    parser = argparse.ArgumentParser("Fine tune and evaluate the LFMC model")
     parser.add_argument(
         "--pretrained_models_folder",
         type=Path,
@@ -94,16 +95,20 @@ def main():
             # Use the original h5py folder so H5py files are saved
             h5py_folder = args.h5py_folder
 
-        lfmc_eval = LFMCEval(
+        pretrained_model = Encoder.load_from_folder(args.pretrained_models_folder / args.pretrained_model_name)
+        results = finetune_and_evaluate(
             normalizer=load_normalizer(args.config_dir),
+            pretrained_model=pretrained_model,
             data_folder=data_folder,
             h5py_folder=h5py_folder,
+            output_folder=args.output_folder,
             h5pys_only=args.h5pys_only,
-            output_hw=args.output_hw,
             patch_size=args.patch_size,
+            output_hw=args.output_hw,
         )
-        encoder = Encoder.load_from_folder(args.pretrained_models_folder / args.pretrained_model_name)
-        lfmc_eval.finetune(pretrained_model=encoder, output_folder=args.output_folder)
+
+        with open(args.output_folder / "results.json", "w") as f:
+            json.dump(results, f)
 
 
 if __name__ == "__main__":

@@ -19,7 +19,6 @@ from lfmc.core.filter import Filter
 from lfmc.core.finetuning import DEFAULT_FINETUNING_CONFIG, FinetuningConfig, FineTuningModel
 from lfmc.core.hyperparameters import DEFAULT_HYPERPARAMETERS, HyperParameters
 from lfmc.core.mode import Mode
-from lfmc.core.splits import num_splits
 
 logger = getLogger(__name__)
 
@@ -44,8 +43,8 @@ class LFMCEval:
         output_hw: int = 32,
         output_timesteps: int = 12,
         patch_size: int = 16,
-        validation_fold: int = 0,
-        test_fold: int = 1,
+        validation_folds: frozenset[int] | None = None,
+        test_folds: frozenset[int] | None = None,
     ):
         self.normalizer = normalizer
         self.data_folder = data_folder
@@ -54,8 +53,8 @@ class LFMCEval:
         self.output_hw = output_hw
         self.output_timesteps = output_timesteps
         self.patch_size = patch_size
-        self.validation_fold = validation_fold
-        self.test_fold = test_fold
+        self.validation_folds = validation_folds
+        self.test_folds = test_folds
 
     @classmethod
     def _new_finetuning_model(cls, model: Encoder) -> FineTuningModel:
@@ -115,8 +114,8 @@ class LFMCEval:
             output_hw=self.output_hw,
             output_timesteps=self.output_timesteps,
             mode=mode,
-            validation_fold=self.validation_fold,
-            test_fold=self.test_fold,
+            validation_folds=self.validation_folds,
+            test_folds=self.test_folds,
             filter=filter,
         )
 
@@ -290,7 +289,7 @@ class LFMCEval:
         }
 
 
-def evaluate_all(
+def finetune_and_evaluate(
     normalizer: Normalizer,
     pretrained_model: Encoder,
     data_folder: Path,
@@ -302,8 +301,10 @@ def evaluate_all(
     patch_size: int = 16,
     hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
     finetuning_config: FinetuningConfig = DEFAULT_FINETUNING_CONFIG,
+    # The default number of splits is 100, so use a 70-15-15 train-validation-test split
+    validation_folds: frozenset[int] = frozenset(range(0, 15)),
+    test_folds: frozenset[int] = frozenset(range(15, 30)),
 ) -> ResultsDict:
-    """Performs k-fold cross validation on the model."""
     filters = {
         "all": None,
         MeteorologicalSeason.WINTER: Filter(seasons={MeteorologicalSeason.WINTER}),
@@ -326,35 +327,24 @@ def evaluate_all(
         "low_fire_danger": Filter(high_fire_danger=False),
     }
 
-    all_labels_by_name: dict[str, list[np.ndarray]] = {}
-    all_preds_by_name: dict[str, list[np.ndarray]] = {}
-    for validation_fold in tqdm(range(num_splits()), desc="Processing splits"):
-        test_fold = (validation_fold + 1) % num_splits()
-        lfmc_eval = LFMCEval(
-            normalizer=normalizer,
-            data_folder=data_folder,
-            h5py_folder=h5py_folder,
-            h5pys_only=h5pys_only,
-            output_hw=output_hw,
-            output_timesteps=output_timesteps,
-            patch_size=patch_size,
-            validation_fold=validation_fold,
-            test_fold=test_fold,
-        )
+    lfmc_eval = LFMCEval(
+        normalizer=normalizer,
+        data_folder=data_folder,
+        h5py_folder=h5py_folder,
+        h5pys_only=h5pys_only,
+        output_hw=output_hw,
+        output_timesteps=output_timesteps,
+        patch_size=patch_size,
+        validation_folds=validation_folds,
+        test_folds=test_folds,
+    )
 
-        split_output_folder = output_folder / f"v{validation_fold}_t{test_fold}"
-        split_output_folder.mkdir(parents=True, exist_ok=True)
-        finetuned_model = lfmc_eval.finetune(pretrained_model, split_output_folder, hyperparams, finetuning_config)
+    finetuned_model = lfmc_eval.finetune(pretrained_model, output_folder, hyperparams, finetuning_config)
 
-        for filter_name, filter in filters.items():
-            labels, preds = lfmc_eval.test(filter_name, finetuned_model, filter=filter)
-            all_labels_by_name.setdefault(filter_name, []).append(labels)
-            all_preds_by_name.setdefault(filter_name, []).append(preds)
-
-    all_results = {}
-    for filter_name in filters.keys():
-        all_labels = np.concatenate(all_labels_by_name[filter_name])
-        all_preds = np.concatenate(all_preds_by_name[filter_name])
-        results = lfmc_eval.compute_metrics(filter_name, all_preds, all_labels)
+    all_results: dict[str, dict[str, float]] = {}
+    for filter_name, filter in filters.items():
+        labels, preds = lfmc_eval.test(filter_name, finetuned_model, filter=filter)
+        results = lfmc_eval.compute_metrics(filter_name, preds, labels)
         all_results.update(results)
+
     return all_results
