@@ -19,6 +19,7 @@ from lfmc.core.filter import Filter
 from lfmc.core.finetuning import DEFAULT_FINETUNING_CONFIG, FinetuningConfig, FineTuningModel
 from lfmc.core.hyperparameters import DEFAULT_HYPERPARAMETERS, HyperParameters
 from lfmc.core.mode import Mode
+from lfmc.core.splits import DEFAULT_TEST_FOLDS, DEFAULT_VALIDATION_FOLDS
 
 logger = getLogger(__name__)
 
@@ -302,8 +303,8 @@ def finetune_and_evaluate(
     hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
     finetuning_config: FinetuningConfig = DEFAULT_FINETUNING_CONFIG,
     # The default number of splits is 100, so use a 70-15-15 train-validation-test split
-    validation_folds: frozenset[int] = frozenset(range(0, 15)),
-    test_folds: frozenset[int] = frozenset(range(15, 30)),
+    validation_folds: frozenset[int] = DEFAULT_VALIDATION_FOLDS,
+    test_folds: frozenset[int] = DEFAULT_TEST_FOLDS,
 ) -> ResultsDict:
     filters = {
         "all": None,
