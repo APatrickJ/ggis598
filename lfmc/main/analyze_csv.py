@@ -2,7 +2,7 @@ import argparse
 import logging
 from pathlib import Path
 
-from lfmc.core.const import LABELS_PATH, METEOROLOGICAL_SEASON_MONTHS, Column
+from lfmc.core.const import HIGH_FIRE_DANGER_THRESHOLD, LABELS_PATH, METEOROLOGICAL_SEASON_MONTHS, Column
 from lfmc.core.labels import read_labels
 
 
@@ -36,6 +36,8 @@ def analyze_csv(input_csv_path: Path):
             season,
             len(df[df[Column.SAMPLING_DATE].dt.month.isin(METEOROLOGICAL_SEASON_MONTHS[season])]),
         )
+    logging.info("High fire danger count: %d", len(df[df[Column.LFMC_VALUE] < HIGH_FIRE_DANGER_THRESHOLD]))
+    logging.info("Non-high fire danger count: %d", len(df[df[Column.LFMC_VALUE] >= HIGH_FIRE_DANGER_THRESHOLD]))
 
 
 def main():
