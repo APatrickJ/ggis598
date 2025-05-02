@@ -39,7 +39,7 @@ def test_finetune_and_test(
     assert finetuned_model.encoder is not None
     assert finetuned_model.head is not None
 
-    labels, preds = lfmc_eval.test(
+    labels, preds, _ = lfmc_eval.test(
         name="test",
         finetuned_model=finetuned_model,
         filter=None,

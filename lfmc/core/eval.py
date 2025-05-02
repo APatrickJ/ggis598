@@ -171,7 +171,7 @@ class LFMCEval:
             finetuning_model.train()
             epoch_train_loss = 0.0
 
-            for masked_output, label in tqdm(train_loader, desc="Training", leave=False):
+            for masked_output, (_, _), label in tqdm(train_loader, desc="Training", leave=False):
                 s_t_x, sp_x, t_x, st_x, s_t_m, sp_m, t_m, st_m, months = [x.to(device) for x in masked_output]
                 optimizer.zero_grad()
                 predictions = finetuning_model(
@@ -196,7 +196,7 @@ class LFMCEval:
             finetuning_model.eval()
             all_predictions = []
             all_labels = []
-            for masked_output, label in tqdm(validation_loader, desc="Validation", leave=False):
+            for masked_output, (_, _), label in tqdm(validation_loader, desc="Validation", leave=False):
                 s_t_x, sp_x, t_x, st_x, s_t_m, sp_m, t_m, st_m, months = [x.to(device) for x in masked_output]
                 with torch.no_grad():
                     predictions = finetuning_model(
@@ -243,7 +243,7 @@ class LFMCEval:
         finetuned_model: FineTuningModel,
         filter: Filter | None = None,
         hyperparams: HyperParameters = DEFAULT_HYPERPARAMETERS,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         test_loader = DataLoader(
             self._create_dataset(Mode.TEST, filter),
             batch_size=hyperparams.batch_size,
@@ -253,7 +253,8 @@ class LFMCEval:
 
         labels_list = []
         preds_list = []
-        for masked_output, label in tqdm(test_loader, desc=f"Evaluating {name}", leave=False):
+        locations_list = []
+        for masked_output, (latitude, longitude), label in tqdm(test_loader, desc=f"Evaluating {name}", leave=False):
             s_t_x, sp_x, t_x, st_x, s_t_m, sp_m, t_m, st_m, months = [x.to(device) for x in masked_output]
             finetuned_model.eval()
             with torch.no_grad():
@@ -271,10 +272,12 @@ class LFMCEval:
                 )[:, 0]
                 labels_list.append(label.cpu().numpy())
                 preds_list.append(predictions.cpu().numpy())
+                locations_list.append((latitude.cpu().numpy(), longitude.cpu().numpy()))
 
         all_labels = np.concatenate(labels_list) if len(labels_list) > 0 else np.array([])
         all_preds = np.concatenate(preds_list) if len(preds_list) > 0 else np.array([])
-        return all_labels, all_preds
+        all_locations = np.concatenate(locations_list) if len(locations_list) > 0 else np.array([])
+        return all_labels, all_preds, all_locations
 
     def compute_metrics(self, name: str, preds: np.ndarray, labels: np.ndarray) -> ResultsDict:
         if preds.size == 0 or labels.size == 0:
@@ -344,7 +347,7 @@ def finetune_and_evaluate(
 
     all_results: dict[str, dict[str, float]] = {}
     for filter_name, filter in filters.items():
-        labels, preds = lfmc_eval.test(filter_name, finetuned_model, filter=filter)
+        labels, preds, _ = lfmc_eval.test(filter_name, finetuned_model, filter=filter)
         results = lfmc_eval.compute_metrics(filter_name, preds, labels)
         all_results.update(results)
 

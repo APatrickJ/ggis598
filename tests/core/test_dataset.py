@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence
 
 import pytest
 
@@ -11,7 +11,7 @@ from lfmc.core.mode import Mode
 from lfmc.core.splits import num_folds
 
 
-def assert_sets_unique(sets: Sequence[set[float]]):
+def assert_sets_unique(sets: Sequence[set[Any]]):
     assert len(sets) == len({frozenset(s) for s in sets})
 
 
@@ -61,9 +61,9 @@ def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, norm
             test_folds=test_folds,
         )
 
-    training_samples_by_split_id: dict[int, set[float]] = {}
-    validation_samples_by_split_id: dict[int, set[float]] = {}
-    test_samples_by_split_id: dict[int, set[float]] = {}
+    training_samples_by_split_id: dict[int, set[tuple[float, float]]] = {}
+    validation_samples_by_split_id: dict[int, set[tuple[float, float]]] = {}
+    test_samples_by_split_id: dict[int, set[tuple[float, float]]] = {}
     for validation_fold in range(num_folds()):
         test_fold = (validation_fold + 1) % num_folds()
         train_dataset = create_dataset(Mode.TRAIN, frozenset({validation_fold}), frozenset({test_fold}))
@@ -71,14 +71,14 @@ def test_dataset_splits_are_different(data_folder: Path, h5py_folder: Path, norm
         test_dataset = create_dataset(Mode.TEST, frozenset({validation_fold}), frozenset({test_fold}))
 
         for i in range(len(train_dataset)):
-            _, lfmc_value = train_dataset[i]
-            training_samples_by_split_id.setdefault(validation_fold, set()).add(lfmc_value)
+            _, (latitude, longitude), _ = train_dataset[i]
+            training_samples_by_split_id.setdefault(validation_fold, set()).add((latitude, longitude))
         for i in range(len(validation_dataset)):
-            _, lfmc_value = validation_dataset[i]
-            validation_samples_by_split_id.setdefault(validation_fold, set()).add(lfmc_value)
+            _, (latitude, longitude), _ = validation_dataset[i]
+            validation_samples_by_split_id.setdefault(validation_fold, set()).add((latitude, longitude))
         for i in range(len(test_dataset)):
-            _, lfmc_value = test_dataset[i]
-            test_samples_by_split_id.setdefault(validation_fold, set()).add(lfmc_value)
+            _, (latitude, longitude), _ = test_dataset[i]
+            test_samples_by_split_id.setdefault(validation_fold, set()).add((latitude, longitude))
 
     assert_sets_unique(list(training_samples_by_split_id.values()))
     assert_sets_unique(list(validation_samples_by_split_id.values()))
