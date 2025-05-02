@@ -96,7 +96,7 @@ def main():
             h5py_folder = args.h5py_folder
 
         pretrained_model = Encoder.load_from_folder(args.pretrained_models_folder / args.pretrained_model_name)
-        results = finetune_and_evaluate(
+        results, df = finetune_and_evaluate(
             normalizer=load_normalizer(args.config_dir),
             pretrained_model=pretrained_model,
             data_folder=data_folder,
@@ -109,6 +109,7 @@ def main():
 
         with open(args.output_folder / "results.json", "w") as f:
             json.dump(results, f)
+        df.to_csv(args.output_folder / "results.csv", index=False)
 
 
 if __name__ == "__main__":
