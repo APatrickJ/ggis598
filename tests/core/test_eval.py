@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pandas as pd
+
 from galileo.data.dataset import Normalizer
 from galileo.galileo import Encoder
 from lfmc.core.const import MeteorologicalSeason, WorldCoverClass
@@ -39,7 +41,7 @@ def test_finetune_and_test(
     assert finetuned_model.encoder is not None
     assert finetuned_model.head is not None
 
-    labels, preds, _ = lfmc_eval.test(
+    labels, preds, _, _ = lfmc_eval.test(
         name="test",
         finetuned_model=finetuned_model,
         filter=None,
@@ -60,7 +62,7 @@ def test_finetune_and_evaluate(
 ):
     output_folder = tmp_path / "results"
     output_folder.mkdir(parents=True, exist_ok=True)
-    results = finetune_and_evaluate(
+    results, df = finetune_and_evaluate(
         normalizer=normalizer,
         pretrained_model=encoder,
         data_folder=data_folder,
@@ -71,6 +73,8 @@ def test_finetune_and_evaluate(
     )
     assert results is not None
     assert isinstance(results, dict)
+    assert df is not None
+    assert isinstance(df, pd.DataFrame)
     filter_names = [
         "all",
         # Not all keys are present in the results due to the small size of the dataset
@@ -92,3 +96,9 @@ def test_finetune_and_evaluate(
         assert isinstance(results[filter_name]["r2_score"], float)
         assert isinstance(results[filter_name]["mae"], float)
         assert isinstance(results[filter_name]["rmse"], float)
+
+    assert 0 <= df.shape[0] <= len(list(data_folder.glob("*.tif")))
+    assert "latitude" in df.columns
+    assert "longitude" in df.columns
+    assert "label" in df.columns
+    assert "prediction" in df.columns
