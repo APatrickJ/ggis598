@@ -30,6 +30,8 @@ from lfmc.core.splits import assign_folds, assign_splits, num_folds
 class SampleData:
     sorting_id: int
     start_month: int
+    latitude: float
+    longitude: float
     lfmc_value: float
 
 
@@ -100,6 +102,8 @@ class LFMCDataset(Dataset):
                 start_date, _ = pad_dates(row[Column.SAMPLING_DATE].date())
                 stem_to_sample[filepath.stem] = SampleData(
                     sorting_id=row[Column.SORTING_ID],
+                    latitude=row[Column.LATITUDE],
+                    longitude=row[Column.LONGITUDE],
                     lfmc_value=row[Column.LFMC_VALUE],
                     start_month=start_date.month,
                 )
@@ -149,7 +153,7 @@ class LFMCDataset(Dataset):
     def __len__(self) -> int:
         return len(self.tifs) if not self.h5pys_only else len(self.h5pys)
 
-    def __getitem__(self, idx: int) -> tuple[MaskedOutput, float]:
+    def __getitem__(self, idx: int) -> tuple[MaskedOutput, tuple[float, float], float]:
         if self.h5pys_only:
             (s_t_x, sp_x, t_x, st_x, months) = self.read_and_slice_h5py_file(self.h5pys[idx]).normalize(self.normalizer)
             filepath = self.h5pys[idx]
@@ -159,7 +163,11 @@ class LFMCDataset(Dataset):
 
         sample_data = self.stem_to_sample[filepath.stem]
         normalized_lfmc_value = min(sample_data.lfmc_value, MAX_LFMC_VALUE) / MAX_LFMC_VALUE
-        return masked_output_np_to_tensor(s_t_x, sp_x, t_x, st_x, *self.masks, months), normalized_lfmc_value
+        return (
+            masked_output_np_to_tensor(s_t_x, sp_x, t_x, st_x, *self.masks, months),
+            (sample_data.latitude, sample_data.longitude),
+            normalized_lfmc_value,
+        )
 
     @override
     @staticmethod
